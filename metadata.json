@@ -1,0 +1,6 @@
+{
+  "name": "Telemetry Backend",
+  "description": "Real-time telemetry dashboard backend with WebSocket streaming, REST APIs, and deterministic anomaly detection",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
