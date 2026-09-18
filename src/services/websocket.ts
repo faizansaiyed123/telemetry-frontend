@@ -6,31 +6,38 @@ type StatusHandler = (status: ConnectionStatus) => void;
 
 export class TelemetryWebSocketService {
   private ws: WebSocket | null = null;
-  private messageHandlers: Set<MessageHandler> = new Set();
-  private statusHandlers: Set<StatusHandler> = new Set();
-
+  private messageHandlers = new Set<MessageHandler>();
+  private statusHandlers = new Set<StatusHandler>();
   private status: ConnectionStatus = "DISCONNECTED";
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 30;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private readonly maxReconnectAttempts = 30;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private intentionalClose = false;
 
-  constructor() {
-    //
-  }
-
   private getWebSocketUrl(): string {
+    const token = window.localStorage.getItem("telemetry_access_token");
+    if (!token) throw new Error("Authentication required");
+
+    let base: URL;
     if (API_BASE_URL) {
-      const url = new URL(API_BASE_URL);
-      const protocol = url.protocol === "https:" ? "wss:" : "ws:";
-      return `${protocol}//${url.host}/ws/telemetry`;
+      base = new URL(API_BASE_URL);
+    } else {
+      base = new URL(window.location.origin);
     }
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host}/ws/telemetry`;
+
+    const protocol = base.protocol === "https:" ? "wss:" : "ws:";
+    const url = new URL(`${protocol}//${base.host}/ws/telemetry`);
+    url.searchParams.set("token", token);
+    return url.toString();
   }
 
   public connect(): void {
-    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+    if (this.ws && [WebSocket.OPEN, WebSocket.CONNECTING].includes(this.ws.readyState)) {
+      return;
+    }
+
+    if (!window.localStorage.getItem("telemetry_access_token")) {
+      this.setStatus("DISCONNECTED");
       return;
     }
 
@@ -38,8 +45,7 @@ export class TelemetryWebSocketService {
     this.setStatus(this.reconnectAttempts > 0 ? "RECONNECTING" : "CONNECTING");
 
     try {
-      const wsUrl = this.getWebSocketUrl();
-      this.ws = new WebSocket(wsUrl);
+      this.ws = new WebSocket(this.getWebSocketUrl());
 
       this.ws.onopen = () => {
         this.reconnectAttempts = 0;
@@ -53,7 +59,7 @@ export class TelemetryWebSocketService {
             this.notifyMessage(parsed);
           }
         } catch {
-          // Malformed message ignored
+          // Ignore malformed server frames.
         }
       };
 
@@ -61,11 +67,15 @@ export class TelemetryWebSocketService {
         this.setStatus("ERROR");
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
         this.ws = null;
         if (!this.intentionalClose) {
+          if (event.code === 1008) {
+            window.localStorage.removeItem("telemetry_access_token");
+            window.localStorage.removeItem("telemetry_user");
+          }
           this.setStatus("DISCONNECTED");
-          this.scheduleReconnect();
+          if (event.code !== 1008) this.scheduleReconnect();
         } else {
           this.setStatus("DISCONNECTED");
         }
@@ -90,7 +100,7 @@ export class TelemetryWebSocketService {
   }
 
   private scheduleReconnect(): void {
-    if (this.intentionalClose) return;
+    if (this.intentionalClose || !window.localStorage.getItem("telemetry_access_token")) return;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -99,27 +109,23 @@ export class TelemetryWebSocketService {
     }
 
     this.reconnectAttempts += 1;
-    // Exponential backoff capped at 8000ms
-    const delay = Math.min(8000, 1000 * Math.pow(1.5, this.reconnectAttempts));
+    const delay = Math.min(8000, Math.round(1000 * Math.pow(1.5, this.reconnectAttempts - 1)));
     this.setStatus("RECONNECTING");
 
     this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
       this.connect();
     }, delay);
   }
 
-  private setStatus(newStatus: ConnectionStatus): void {
-    if (this.status === newStatus) return;
-    this.status = newStatus;
-    for (const handler of this.statusHandlers) {
-      handler(newStatus);
-    }
+  private setStatus(status: ConnectionStatus): void {
+    if (this.status === status) return;
+    this.status = status;
+    for (const handler of this.statusHandlers) handler(status);
   }
 
   private notifyMessage(message: WebSocketMessage): void {
-    for (const handler of this.messageHandlers) {
-      handler(message);
-    }
+    for (const handler of this.messageHandlers) handler(message);
   }
 
   public subscribeMessage(handler: MessageHandler): () => void {
