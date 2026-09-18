@@ -260,7 +260,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-4 px-6 text-center text-xs text-slate-600">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Telemetry Backend Observability System &bull; Port 3000 &bull; WebSocket Stream</span>
+          <span>Telemetry Control Center &bull; Real-time infrastructure observability</span>
           <div className="flex items-center gap-4">
             <a href={`${API_BASE_URL}/docs`} target="_blank" rel="noreferrer" className="hover:text-slate-400 underline">
               FastAPI OpenAPI Docs
