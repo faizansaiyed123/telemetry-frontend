@@ -15,27 +15,27 @@ interface ChartDataset {
   maxExpected: number;
 }
 
+const COMPUTE_DATASETS: ChartDataset[] = [
+  { label: "CPU Usage", key: "cpu", color: "#38bdf8", unit: "%", maxExpected: 100 },
+  { label: "Memory", key: "memory", color: "#818cf8", unit: "%", maxExpected: 100 },
+  { label: "Temperature", key: "temperature", color: "#fb923c", unit: "°C", maxExpected: 110 },
+];
+
+const TRAFFIC_DATASETS: ChartDataset[] = [
+  { label: "Throughput", key: "network_mbps", color: "#34d399", unit: "Mbps", maxExpected: 400 },
+  { label: "Req / Sec", key: "requests_per_second", color: "#22d3ee", unit: "req/s", maxExpected: 1500 },
+];
+
+const LATENCY_DATASETS: ChartDataset[] = [
+  { label: "Latency", key: "latency_ms", color: "#f59e0b", unit: "ms", maxExpected: 120 },
+  { label: "Error Rate", key: "error_rate", color: "#f43f5e", unit: "%", maxExpected: 15 },
+];
+
 export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
   streamBuffer,
   activeAnomalyMetric,
 }) => {
   const [activeTab, setActiveTab] = useState<"all" | "compute" | "traffic" | "latency">("all");
-
-  const computeDatasets: ChartDataset[] = [
-    { label: "CPU Usage", key: "cpu", color: "#38bdf8", unit: "%", maxExpected: 100 },
-    { label: "Memory", key: "memory", color: "#818cf8", unit: "%", maxExpected: 100 },
-    { label: "Temperature", key: "temperature", color: "#fb923c", unit: "°C", maxExpected: 110 },
-  ];
-
-  const trafficDatasets: ChartDataset[] = [
-    { label: "Throughput", key: "network_mbps", color: "#34d399", unit: "Mbps", maxExpected: 400 },
-    { label: "Req / Sec", key: "requests_per_second", color: "#22d3ee", unit: "req/s", maxExpected: 1500 },
-  ];
-
-  const latencyDatasets: ChartDataset[] = [
-    { label: "Latency", key: "latency_ms", color: "#f59e0b", unit: "ms", maxExpected: 120 },
-    { label: "Error Rate", key: "error_rate", color: "#f43f5e", unit: "%", maxExpected: 15 },
-  ];
 
   return (
     <div className="space-y-4">
@@ -111,7 +111,7 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
             title="Compute & Thermal State"
             subtitle="CPU, Memory & Core Temp"
             icon={<Cpu className="w-4 h-4 text-cyan-400" />}
-            datasets={computeDatasets}
+            datasets={COMPUTE_DATASETS}
             data={streamBuffer}
             height={activeTab === "all" ? 220 : 340}
             activeAnomalyMetric={activeAnomalyMetric}
@@ -124,7 +124,7 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
             title="Traffic & Throughput"
             subtitle="Network bandwidth & req/sec"
             icon={<Globe className="w-4 h-4 text-emerald-400" />}
-            datasets={trafficDatasets}
+            datasets={TRAFFIC_DATASETS}
             data={streamBuffer}
             height={activeTab === "all" ? 220 : 340}
             activeAnomalyMetric={activeAnomalyMetric}
@@ -137,7 +137,7 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
             title="Response Time & Error Rate"
             subtitle="End-to-end latency & error spikes"
             icon={<Gauge className="w-4 h-4 text-amber-400" />}
-            datasets={latencyDatasets}
+            datasets={LATENCY_DATASETS}
             data={streamBuffer}
             height={activeTab === "all" ? 220 : 340}
             activeAnomalyMetric={activeAnomalyMetric}
@@ -203,7 +203,8 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
       ctx.stroke();
     }
 
-    // Determine scale for each dataset and draw
+    // Determine scale for each dataset and draw.
+    const anomalyKey = activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
     datasets.forEach((ds) => {
       if (data.length < 2) return;
 
@@ -213,7 +214,7 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
 
       ctx.beginPath();
       ctx.strokeStyle = ds.color;
-      ctx.lineWidth = ds.key === activeAnomalyMetric ? 3 : 2;
+      ctx.lineWidth = ds.key === anomalyKey ? 3 : 2;
       ctx.lineJoin = "round";
 
       const step = w / Math.max(1, data.length - 1);
@@ -266,7 +267,8 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
         <div className="flex flex-wrap gap-x-3 gap-y-1 my-2">
           {datasets.map((ds) => {
             const val = latestEvent ? latestEvent[ds.key] : null;
-            const isAnomaly = ds.key === activeAnomalyMetric;
+            const anomalyKey = activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
+            const isAnomaly = ds.key === anomalyKey;
 
             return (
               <div
