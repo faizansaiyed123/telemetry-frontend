@@ -22,10 +22,9 @@ import { SimulationControls } from "../components/simulation/SimulationControls.
 import { StatsOverview } from "../components/common/StatsOverview.js";
 import { HistoryViewer } from "../components/common/HistoryViewer.js";
 import { WebSocketMessage } from "../types/websocket.js";
-import { getStoredUser } from "../lib/session.js";
 import { API_BASE_URL } from "../services/api.js";
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> = ({ user }) => {
   const telemetry = useTelemetry();
   const alerts = useAlerts();
 
@@ -41,8 +40,7 @@ export const Dashboard: React.FC = () => {
   }, [telemetry, alerts]);
 
   const simulation = useSimulation(handleReset);
-  const user = getStoredUser();
-  const canControlSimulation = user?.role === "admin" || user?.role === "operator";
+  const canControlSimulation = user.role === "admin" || user.role === "operator";
 
   // Incoming WebSocket dispatcher
   const handleWsMessage = useCallback(
