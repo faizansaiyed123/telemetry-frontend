@@ -10,7 +10,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
   },
   "include": ["src/**/*", "server.ts", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
