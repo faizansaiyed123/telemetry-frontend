@@ -1,4 +1,5 @@
 name: End-to-End Browser QA
+# Full browser QA: pushed commits intentionally trigger this workflow.
 
 on:
   push:
