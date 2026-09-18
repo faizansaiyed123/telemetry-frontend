@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, ExternalLink, KeyRound, Radio, ShieldCheck } from "lucide-react";
 import type { AuthUser } from "../types/app.js";
-import { api } from "../services/api.js";
+import { API_BASE_URL, api } from "../services/api.js";
 
 export const Settings: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -39,7 +39,7 @@ export const Settings: React.FC<{ user: AuthUser }> = ({ user }) => {
     }
   }
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  const apiBase = API_BASE_URL;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-5 sm:p-8">
