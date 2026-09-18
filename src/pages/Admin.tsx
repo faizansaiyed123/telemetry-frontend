@@ -159,8 +159,8 @@ export const Admin: React.FC<{ user: AuthUser }> = ({ user }) => {
                   {userRecord.is_active
                     ? <span className="flex items-center gap-1.5 text-xs text-emerald-300"><UserCheck className="h-3.5 w-3.5" />Active</span>
                     : <span className="flex items-center gap-1.5 text-xs text-slate-600"><UserX className="h-3.5 w-3.5" />Inactive</span>}
-                  <button disabled={busy === userRecord.id} onClick={() => void toggle(userRecord)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400 disabled:opacity-40">
-                    {userRecord.is_active ? "Deactivate" : "Activate"}
+                  <button disabled={busy === userRecord.id || userRecord.id === user.id} onClick={() => void toggle(userRecord)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400 disabled:opacity-40">
+                    {userRecord.is_active ? "Deactivate" : "Activate"}{userRecord.id === user.id ? " (current)" : ""}
                   </button>
                   <button onClick={() => startRoleEdit(userRecord)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400 hover:bg-white/[0.04]">
                     <UserRoundCog className="h-3.5 w-3.5" />Role
