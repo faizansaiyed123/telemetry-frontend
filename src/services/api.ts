@@ -16,7 +16,7 @@ import {
 
 export const API_BASE_URL =
   typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL
-    ? import.meta.env.VITE_API_BASE_URL.replace(//$/, "")
+    ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")
     : "http://localhost:8000";
 
 export class ApiError extends Error {
@@ -74,8 +74,14 @@ export const api = {
       body,
     }).then(async (res) => {
       if (!res.ok) {
-        throw new ApiError("Invalid email or password", res.status);
-      }
+        let message = "Invalid email or password";
+        try {
+          const data = await res.json();
+          if (typeof data?.detail === "string") message = data.detail;
+        } catch {
+          // Keep the authentication fallback message when the response is not JSON.
+        }
+        throw new ApiError(message, res.status);\n      }
       return res.json() as Promise<AuthResponse>;
     });
   },

@@ -16,7 +16,7 @@ export function useTelemetry() {
   const [sequenceGapDetected, setSequenceGapDetected] = useState<boolean>(false);
 
   const lastSeqRef = useRef<number | null>(null);
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEventsRef = useRef<TelemetryEvent[]>([]);
 
   // Batch high-frequency incoming telemetry to maintain smooth 60fps UI even at 100Hz

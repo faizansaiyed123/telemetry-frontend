@@ -23,6 +23,7 @@ import { StatsOverview } from "../components/common/StatsOverview.js";
 import { HistoryViewer } from "../components/common/HistoryViewer.js";
 import { WebSocketMessage } from "../types/websocket.js";
 import { getStoredUser } from "../lib/session.js";
+import { API_BASE_URL } from "../services/api.js";
 
 export const Dashboard: React.FC = () => {
   const telemetry = useTelemetry();
@@ -263,10 +264,10 @@ export const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Telemetry Backend Observability System &bull; Port 3000 &bull; WebSocket Stream</span>
           <div className="flex items-center gap-4">
-            <a href="/docs" target="_blank" className="hover:text-slate-400 underline">
+            <a href={`${API_BASE_URL}/docs`} target="_blank" rel="noreferrer" className="hover:text-slate-400 underline">
               FastAPI OpenAPI Docs
             </a>
-            <a href="/health" target="_blank" className="hover:text-slate-400 underline">
+            <a href={`${API_BASE_URL}/health`} target="_blank" rel="noreferrer" className="hover:text-slate-400 underline">
               Health Check JSON
             </a>
           </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ErrorBoundary } from "./components/common/ErrorBoundary.js";
 import { AppShell } from "./components/layout/AppShell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Home } from "./pages/Home.js";
@@ -35,8 +36,8 @@ function ProtectedApp() {
 export function App(){
  const path=window.location.pathname.replace(/\/$/,"") || "/";
  if(path==="/login") return <Login/>;
- if(path==="/app" || path.startsWith("/app/")) return <ProtectedApp/>;
- return <Home/>;
+ if(path==="/app" || path.startsWith("/app/")) return <ErrorBoundary><ProtectedApp/></ErrorBoundary>;
+ return <ErrorBoundary><Home/></ErrorBoundary>;
 }
 
 export default App;

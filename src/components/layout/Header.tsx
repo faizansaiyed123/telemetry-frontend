@@ -13,6 +13,7 @@ import {
 import { ConnectionStatus } from "../../types/websocket.js";
 import { SimulationStatus, HealthResponse } from "../../types/simulation.js";
 import { formatUptime } from "../../utils/formatters.js";
+import { API_BASE_URL } from "../../services/api.js";
 
 interface HeaderProps {
   connectionStatus: ConnectionStatus;
@@ -173,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Swagger / Docs link */}
           <a
-            href="/docs"
+            href={`${API_BASE_URL}/docs`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 transition-colors"
