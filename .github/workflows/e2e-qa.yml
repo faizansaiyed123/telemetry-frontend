@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: frontend-e2e-\${{ github.ref }}
+  group: frontend-e2e-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,6 +44,7 @@ jobs:
         with:
           repository: faizansaiyed123/telemetry-backend
           ref: fe6adac9603f32fd898850c73bf0b23a41ef7246
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
           path: backend
 
       - name: Setup Node
