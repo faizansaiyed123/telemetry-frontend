@@ -1,232 +1,479 @@
-# Telemetry Backend & Real-Time Observability Dashboard
+# Telemetry Frontend
 
-Production-grade real-time infrastructure telemetry monitoring platform built with a high-performance streaming backend and a polished React + TypeScript dashboard.
+React + TypeScript web application for the Telemetry infrastructure observability platform.
 
-## System Architecture
+The frontend contains two public-facing experiences:
+
+1. A public marketing homepage that explains the product and directs visitors into the workspace.
+2. An authenticated control center for live telemetry, alerts, analytics, hosts, administration, settings, and simulation controls.
+
+## Product overview
 
 ```
-                    TELEMETRY SYSTEM
-                           │
-            ┌──────────────┴──────────────┐
-            │                             │
-         REST API                     WebSocket
-            │                             │
-            ▼                             ▼
-     Current/History/Stats          Live Telemetry
-     Alerts/Simulation              Alerts/System
-            │                             │
-            └──────────────┬──────────────┘
-                           ▼
-                    React Dashboard
-                           │
-            ┌──────────────┼──────────────┐
-            ▼              ▼              ▼
-         Metrics         Charts         Alerts
-            │              │              │
-            └──────────────┼──────────────┘
-                           ▼
-                  Simulation Controls
+                         Telemetry platform
+                                │
+                ┌───────────────┴───────────────┐
+                │                               │
+         Public homepage                  Authenticated app
+                │                               │
+        Product / service CTA            Control Center
+                                                │
+                 ┌──────────────┬───────────────┼──────────────┐
+                 ▼              ▼               ▼              ▼
+             Overview         Alerts        Analytics        Hosts
+                 │                                              │
+                 ├──────── Simulation controls ─────────────────┤
+                 └──────── Administration / Settings ───────────┘
+                                │
+                    REST API + WebSocket
+                                │
+                                ▼
+                       Telemetry Backend
 ```
 
-### Backend Components
-- **Central Telemetry Engine**: Generates correlated, bounded system metrics (CPU, Memory, Temperature, Network Throughput, Requests/sec, Latency, Error Rate) with configurable frequency (1–100 Hz).
-- **Statistical Anomaly Detection**: Real-time rolling z-score analysis (`z = (value - mean) / std_dev`) with severity categorization (`INFO`, `WARNING`, `CRITICAL`).
-- **Alert Lifecycle Engine**: Manages detected $\rightarrow$ active $\rightarrow$ resolved states with automatic resolution upon metric normalization and alert deduplication.
-- **WebSocket Streaming (`/ws/telemetry`)**: Real-time broadcasting to all connected clients.
-- **REST APIs**: Full OpenAPI/Swagger compliant endpoints for queries and simulation controls.
+## What the frontend does
 
-### Frontend Dashboard
-- **Live System Gauges**: 7 real-time metric cards with instant delta indicators, min/max/average ranges, and high-DPR mini sparklines.
-- **Grouped Time-Series Visualizers**: Canvas-rendered smooth multi-stream charts for Compute, Traffic, and Latency/Errors with zero lag even at 100 Hz.
-- **Anomaly Alerts Center**: Real-time alert feed with active filtering, severity badges, observed vs baseline readings, and resolution timestamps.
-- **Simulation Control Deck**:
-  - Live Stream Pause / Resume
-  - Engine State Reset with confirmation
-  - Stream Frequency Slider (1–100 Hz) with quick presets ([1 Hz], [10 Hz], [50 Hz], [100 Hz])
-  - Fault Injection for targeted metrics (CPU spike, memory leak, thermal runaway, latency jump, error burst) with customizable intensity and duration.
-- **Statistical Aggregation Matrix**: Real-time table consuming `/api/telemetry/stats` showing min, max, average, latest, and % change.
-- **Historical Telemetry Log**: Interactive chronological inspection log with configurable limits (25, 50, 100, 200) and JSON export.
+### Public site
+
+The / route is a service-focused landing page that makes the product understandable before login. It includes:
+
+- live infrastructure observability positioning
+- product capabilities
+- workflow explanation
+- dashboard preview
+- clear calls to action into the workspace
+
+### Authenticated workspace
+
+The /app area provides:
+
+- Live metric cards for CPU, memory, temperature, throughput, requests/sec, latency, and error rate
+- Live canvas-based telemetry charts
+- Real-time alert feed
+- Historical telemetry inspection
+- Backend-computed statistics
+- Simulation start/pause/resume/reset
+- Stream-rate controls
+- Controlled anomaly injection
+- Host management
+- User and role administration
+- Self-service password change
+- API documentation links
+- WebSocket connection and reconnect status
+
+## Role-aware UI
+
+| Capability | Viewer | Operator | Admin |
+|---|:---:|:---:|:---:|
+| View dashboard | ✓ | ✓ | ✓ |
+| View alerts | ✓ | ✓ | ✓ |
+| View analytics | ✓ | ✓ | ✓ |
+| View hosts | ✓ | ✓ | ✓ |
+| Acknowledge alerts |  | ✓ | ✓ |
+| Simulation controls |  | ✓ | ✓ |
+| Create/update/delete hosts |  |  | ✓ |
+| Administration |  |  | ✓ |
+| Change own password | ✓ | ✓ | ✓ |
+
+Alert acknowledgement and all security-sensitive operations are enforced by the backend. Frontend role checks only control what the user sees and can request.
 
 ---
 
-## Getting Started
+## Tech stack
 
-### Prerequisites
-- Node.js >= 20
+| Area | Technology |
+|---|---|
+| UI | React 19 |
+| Language | TypeScript |
+| Build tool | Vite |
+| CSS | Tailwind CSS 4 |
+| Icons | lucide-react |
+| Runtime | Node.js 20+ |
+| Package manager | npm |
+| Live transport | WebSocket |
+| API transport | REST / fetch |
+| Tests | Node test runner via tsx |
 
-### Installation
-```bash
-npm install
+---
+
+## Project structure
+
+```
+telemetry-frontend/
+├── src/
+│   ├── components/
+│   │   ├── alerts/          # Alert UI
+│   │   ├── cards/           # Metric cards and sparklines
+│   │   ├── charts/          # Canvas telemetry charts
+│   │   ├── common/          # Shared UI and error boundary
+│   │   ├── layout/          # Application shell and header
+│   │   └── simulation/      # Simulation controls
+│   ├── hooks/               # Telemetry, alerts, simulation, WebSocket hooks
+│   ├── lib/                 # Session helpers and compatibility exports
+│   ├── models/              # Shared domain types
+│   ├── pages/               # Route-level screens
+│   ├── services/            # Canonical REST API and WebSocket clients
+│   ├── types/               # Application types
+│   ├── utils/               # Formatting helpers
+│   ├── App.tsx              # Route selection and authentication boundary
+│   ├── index.css            # Global styling
+│   └── main.tsx             # React entry point
+├── tests/
+│   └── frontend.test.ts
+├── .env.example
+├── index.html
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
-### Development
-Start the dev server:
-```bash
+### Key architecture boundaries
+
+- src/services/api.ts is the canonical REST client.
+- src/services/websocket.ts owns the browser WebSocket connection and reconnect strategy.
+- src/lib/session.ts stores and refreshes the authenticated client session.
+- src/hooks turns transport data into React state.
+- src/pages composes product screens.
+- The backend remains responsible for authentication, authorization, anomaly detection, persistence, and authoritative alert state.
+
+---
+
+## Routes
+
+| Route | Purpose | Authentication |
+|---|---|---|
+| / | Public product homepage | Public |
+| /login | Workspace sign-in | Public |
+| /app | Live telemetry overview | Required |
+| /app/alerts | Alert center | Required |
+| /app/analytics | Historical and aggregate analytics | Required |
+| /app/hosts | Host inventory | Required |
+| /app/admin | User administration | Admin |
+| /app/settings | Account and password settings | Required |
+
+Routing is intentionally lightweight and implemented in src/App.tsx because the application currently has a small route surface.
+
+---
+
+## Requirements
+
+Install:
+
+- Node.js 20 or newer
+- npm
+
+The backend must also be running for authenticated dashboard features.
+
+---
+
+## Environment configuration
+
+Copy the example file:
+
+```
+cp .env.example .env
+```
+
+The frontend currently uses one primary environment variable:
+
+| Variable | Example | Purpose |
+|---|---|---|
+| VITE_API_BASE_URL | http://localhost:8000 | Backend HTTP and WebSocket base URL |
+
+Example:
+
+```
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Configure the backend CORS origins to allow the frontend origin.
+
+---
+
+## Local development
+
+### Install
+
+```
+npm ci
+```
+
+### Start the development server
+
+```
 npm run dev
 ```
-The server starts on port `3000`. Open `http://localhost:3000` to view the live React dashboard.
 
-### Production Build
-```bash
+Vite uses port 3000 by default.
+
+Open http://localhost:3000.
+
+The public homepage is at / and the authenticated application begins at /login.
+
+---
+
+## Production build
+
+Build:
+
+```
 npm run build
-npm start
 ```
 
-### Testing
-```bash
+Preview the production build locally:
+
+```
+npm run preview
+```
+
+Build output:
+
+```
+dist/client
+```
+
+npm start remains a Vite server alias for compatibility. For production, serve the generated static files from dist/client through a static host or web server.
+
+---
+
+## Backend integration
+
+The frontend expects the API contract implemented by the Telemetry backend.
+
+### Authentication
+
+```
+POST /api/auth/login
+GET  /api/auth/me
+POST /api/auth/change-password
+```
+
+### Telemetry
+
+```
+GET /api/telemetry/current
+GET /api/telemetry/history
+GET /api/telemetry/stats
+```
+
+### Alerts
+
+```
+GET  /api/alerts
+POST /api/alerts/{alert_id}/acknowledge
+```
+
+### Simulation
+
+```
+GET  /api/simulation/status
+POST /api/simulation/start
+POST /api/simulation/pause
+POST /api/simulation/resume
+POST /api/simulation/reset
+POST /api/simulation/rate
+POST /api/simulation/trigger
+```
+
+### Hosts and users
+
+```
+GET/POST/PATCH/DELETE /api/hosts...
+GET/POST/PATCH         /api/users...
+```
+
+### Live stream
+
+```
+ws://localhost:8000/ws/telemetry?token=<jwt>
+```
+
+Use wss:// when the backend is served over HTTPS.
+
+---
+
+## Authentication and session handling
+
+After login, the frontend stores the access token and lightweight user profile in browser storage.
+
+The API service attaches the bearer token to authenticated requests.
+
+When the backend returns HTTP 401 or rejects WebSocket authentication, the stored session is cleared and the user is returned to the sign-in flow.
+
+The browser-stored profile is a UI convenience, not an authorization boundary. The backend validates the JWT and current user status on every protected request.
+
+---
+
+## Live telemetry behavior
+
+Telemetry arrives over WebSocket and is kept in a bounded client-side chart buffer.
+
+At high stream rates, incoming events are batched before React state updates so the page does not render once for every packet.
+
+The client also:
+
+- tracks sequence gaps
+- detects stream resets
+- reconnects with bounded exponential backoff
+- removes WebSocket subscriptions during cleanup
+- clears pending telemetry when simulation state is reset
+
+This separates high-frequency transport from UI rendering.
+
+---
+
+## Charts and visualizations
+
+Charts use HTML canvas instead of a heavy charting dependency.
+
+The dashboard provides:
+
+- seven metric cards with mini sparklines
+- compute and thermal chart
+- traffic and throughput chart
+- latency and error chart
+- chart grouping tabs
+- anomaly highlighting
+- historical event table
+- aggregate statistics table
+
+The frontend does not independently decide whether a metric is anomalous. The backend is authoritative.
+
+---
+
+## Alerts
+
+Alerts can arrive through the initial REST request or the live WebSocket stream.
+
+Incoming alerts are merged by stable alert ID so lifecycle updates replace existing entries instead of creating duplicates.
+
+The UI supports:
+
+- active/all filtering
+- severity display
+- resolved state
+- acknowledgement state
+- observed value and baseline
+- resolution timestamp
+- refresh and retry states
+
+---
+
+## Administration
+
+Administrators can:
+
+- create users
+- assign viewer, operator, or admin roles
+- activate/deactivate users
+- reset passwords
+- add hosts
+- edit host name/environment
+- activate/deactivate hosts
+- remove hosts
+
+Destructive simulation reset also requires confirmation in the UI.
+
+The backend still enforces all authorization and management safeguards.
+
+---
+
+## Testing and verification
+
+Typecheck:
+
+```
+npm run lint
+```
+
+Unit tests:
+
+```
 npm test
 ```
 
----
+Production build:
 
-## API & WebSocket Endpoints
+```
+npm run build
+```
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Server uptime, streaming status, and client count |
-| `GET` | `/api/telemetry/current` | Latest generated telemetry packet |
-| `GET` | `/api/telemetry/history?limit=100` | Bounded historical telemetry events |
-| `GET` | `/api/telemetry/stats` | Aggregated statistics (min, max, avg, latest, pct_change) |
-| `GET` | `/api/alerts?active_only=false` | Active and resolved anomaly alerts |
-| `GET` | `/api/simulation/status` | Current simulation engine state |
-| `POST` | `/api/simulation/start` | Start telemetry stream |
-| `POST` | `/api/simulation/pause` | Pause telemetry stream |
-| `POST` | `/api/simulation/resume` | Resume telemetry stream |
-| `POST` | `/api/simulation/reset` | Reset simulation state, history, and alerts |
-| `POST` | `/api/simulation/rate?rate=N` | Set telemetry generation rate (1–100 Hz) |
-| `POST` | `/api/simulation/trigger` | Inject anomaly (`metric`, `intensity`, `duration_seconds`) |
-| `WS` | `/ws/telemetry` | WebSocket stream (`telemetry`, `alert`, `system`) |
-| `GET` | `/docs` | Interactive Swagger UI documentation |
-| `GET` | `/openapi.json` | OpenAPI 3.0 specification |
+GitHub Actions runs all three checks on pushes and pull requests targeting main.
 
 ---
 
-## Configuration
+## UX and accessibility
 
-Set environment variables in `.env` (refer to `.env.example`):
+The interface is designed for responsive desktop and smaller screens.
 
-```env
-PORT=3000
-TELEMETRY_RATE=10
-MAX_TELEMETRY_RATE=100
-ANOMALY_Z_THRESHOLD=3.0
-MAX_HISTORY_SIZE=5000
-VITE_API_BASE_URL=
-```
+It includes:
 
+- responsive navigation with mobile drawer
+- semantic form controls and labels
+- visible loading and error states
+- confirmation for destructive reset
+- reconnect status and retry actions
+- application-level error boundary
+- restrained transitions and animation
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+Motion is limited to places where it communicates state or feedback.
 
-## REST API
+---
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check with uptime, stream status, client count |
-| GET | `/api/telemetry/current` | Latest telemetry event |
-| GET | `/api/telemetry/history` | Bounded telemetry history (query: `limit`) |
-| GET | `/api/telemetry/stats` | Aggregated statistics over history |
-| GET | `/api/alerts` | Active and recent alerts |
-| GET | `/api/simulation/status` | Current simulation state |
-| POST | `/api/simulation/start` | Start telemetry generation |
-| POST | `/api/simulation/pause` | Pause telemetry generation |
-| POST | `/api/simulation/resume` | Resume telemetry generation |
-| POST | `/api/simulation/reset` | Reset all telemetry state |
-| POST | `/api/simulation/rate` | Set telemetry rate (query: `rate`) |
-| POST | `/api/simulation/trigger` | Trigger an anomaly (body: `{"metric": "cpu"}`) |
+## Security considerations
 
-## WebSocket
+The frontend is not the security boundary.
 
-Connect to `ws://localhost:8000/ws/telemetry`
+For production:
 
-### Message Types
+- serve the application over HTTPS
+- use an HTTPS API and wss:// WebSocket endpoint
+- configure backend CORS for the deployed frontend origin
+- never place private backend secrets in VITE environment variables
+- never treat local browser state as proof of authorization
+- rely on backend JWT validation and active-user checks
 
-**telemetry** — streamed telemetry event:
-```json
-{
-  "type": "telemetry",
-  "data": {
-    "timestamp": "2026-09-16T10:00:00.123Z",
-    "sequence": 1234,
-    "cpu": 63.4,
-    "memory": 71.2,
-    "temperature": 48.1,
-    "network_mbps": 82.4,
-    "requests_per_second": 421,
-    "error_rate": 0.8,
-    "latency_ms": 38.4
-  }
-}
-```
+The frontend only needs the public API base URL.
 
-**alert** — anomaly alert:
-```json
-{
-  "type": "alert",
-  "data": {
-    "id": "alert-1",
-    "timestamp": "2026-09-16T10:00:01.000Z",
-    "metric": "cpu",
-    "value": 95.2,
-    "baseline": 62.1,
-    "severity": "CRITICAL",
-    "message": "CPU anomaly detected: 95.2% (baseline: 62.1%)",
-    "resolved": false
-  }
-}
-```
+---
 
-**system** — system status messages (pause, resume, reset, rate change):
-```json
-{
-  "type": "system",
-  "data": {
-    "event": "paused",
-    "message": "Telemetry generation paused"
-  }
-}
-```
+## Troubleshooting
 
-## Configuration
+### Dashboard connection error
 
-All settings have sensible defaults and work without a `.env` file. Copy `.env.example` to `.env` to customize:
+Check that:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `APP_NAME` | Telemetry Backend | Application name |
-| `APP_ENV` | development | Environment name |
-| `HOST` | 0.0.0.0 | Bind host |
-| `PORT` | 8000 | Bind port |
-| `LOG_LEVEL` | INFO | Logging level |
-| `TELEMETRY_RATE` | 10 | Events per second |
-| `MAX_TELEMETRY_RATE` | 100 | Maximum allowed rate |
-| `MAX_HISTORY_SIZE` | 5000 | Maximum history events retained |
-| `ANOMALY_Z_THRESHOLD` | 3.0 | Z-score threshold for anomaly detection |
-| `CORS_ALLOWED_ORIGINS` | http://localhost:5173,http://localhost:3000 | Comma-separated allowed CORS origins |
+1. the backend is running
+2. VITE_API_BASE_URL points to the backend
+3. backend CORS allows the frontend origin
+4. the current user session is valid
+5. the WebSocket endpoint is reachable
 
-## Docker
+### Redirect back to login
 
-```bash
-docker build -t telemetry-backend .
-docker run --rm -p 8000:8000 telemetry-backend
-```
+The backend may have rejected the token or the user may have been deactivated. Check the /api/auth/me request and backend logs.
 
-## Architecture Decisions
+### Empty history or analytics
 
-**One central generator**: A single background task produces one telemetry stream broadcast to all clients. This ensures all clients see the same data and avoids per-client resource duplication.
+Confirm that PostgreSQL is available, migrations have been applied, and backend telemetry persistence is enabled. The live stream can operate from runtime state even when persistent history is unavailable.
 
-**In-memory bounded history**: Using `collections.deque(maxlen=...)` keeps memory bounded without database complexity. Appropriate for a real-time monitoring simulation where historical persistence is not required.
+---
 
-**WebSockets**: Real-time push to clients is the natural fit for telemetry streaming. Polling REST endpoints would introduce unnecessary latency and load.
+## CI workflow
 
-**Deterministic anomaly detection**: Rolling z-score is simple, fast, deterministic, and testable. No ML or external services needed.
+The frontend workflow:
 
-**No database / no Redis / no message broker**: V1 is a self-contained simulation. Adding infrastructure would add complexity without value at this stage.
+1. installs Node.js
+2. runs npm ci
+3. typechecks the source
+4. runs tests
+5. creates a production build
 
-## Limitations
+This provides automated checks for type regressions, unit-test failures, and production build failures.
 
-- **In-memory state**: All telemetry history, alerts, and state are lost on restart.
-- **Simulation**: Telemetry is generated, not collected from real systems.
-- **Single process**: Not distributed; one process handles all clients.
-- **No authentication**: No auth or authorization is implemented in V1.
-- **No persistence**: No database or persistent storage layer.
+---
+
+## License
+
+MIT
