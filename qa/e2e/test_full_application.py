@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -302,7 +303,7 @@ def test_full_real_user_journey() -> None:
             mobile_ctx = browser.new_context(viewport={"width": 390, "height": 844})
             mobile = mobile_ctx.new_page()
             login(mobile, ADMIN_EMAIL, "QaAdminNew!12345")
-            mobile.locator("button:visible").first.click()
+            mobile.locator("div.h-16 button").first.click()
             expect(mobile.get_by_role("link", name="Overview", exact=True)).to_be_visible(timeout=5_000)
             expect(mobile.get_by_role("link", name="Administration", exact=True)).to_be_visible(timeout=5_000)
             mobile.get_by_role("link", name="Administration", exact=True).click()
