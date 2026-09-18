@@ -37,7 +37,7 @@ function ProtectedApp() {
   }
 
   let content: React.ReactNode;
-  if (path === "/app") content = <Dashboard />;
+  if (path === "/app") content = <Dashboard user={user} />;
   else if (path === "/app/alerts") content = <AlertsPage />;
   else if (path === "/app/analytics") content = <Analytics />;
   else if (path === "/app/hosts") content = <Hosts user={user} />;
