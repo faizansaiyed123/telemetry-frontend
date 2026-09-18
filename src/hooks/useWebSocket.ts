@@ -19,6 +19,7 @@ export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
     return () => {
       unsubStatus();
       unsubMsg();
+      telemetryWsService.disconnect();
     };
   }, [onMessage]);
 
