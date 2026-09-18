@@ -22,6 +22,7 @@ import { SimulationControls } from "../components/simulation/SimulationControls.
 import { StatsOverview } from "../components/common/StatsOverview.js";
 import { HistoryViewer } from "../components/common/HistoryViewer.js";
 import { WebSocketMessage } from "../types/websocket.js";
+import { getStoredUser } from "../lib/session.js";
 
 export const Dashboard: React.FC = () => {
   const telemetry = useTelemetry();
@@ -39,6 +40,8 @@ export const Dashboard: React.FC = () => {
   }, [telemetry, alerts]);
 
   const simulation = useSimulation(handleReset);
+  const user = getStoredUser();
+  const canControlSimulation = user?.role === "admin" || user?.role === "operator";
 
   // Incoming WebSocket dispatcher
   const handleWsMessage = useCallback(
@@ -228,7 +231,7 @@ export const Dashboard: React.FC = () => {
         </section>
 
         {/* Simulation Controls & Anomaly Injection */}
-        <section aria-label="Simulation Controls">
+        {canControlSimulation && <section aria-label="Simulation Controls">
           <SimulationControls
             status={simulation.status}
             actionLoading={simulation.actionLoading}
@@ -237,7 +240,7 @@ export const Dashboard: React.FC = () => {
             onTriggerAnomaly={simulation.triggerAnomaly}
             onReset={simulation.resetSimulation}
           />
-        </section>
+        </section>}
 
         {/* Statistical Overview & Historical Telemetry Log */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6" aria-label="Statistics and History">
