@@ -17,7 +17,7 @@ export interface MetricStat {
   max: number | null;
   avg: number | null;
   latest: number | null;
-  pct_change?: number | null;
+  pct_change: number | null;
 }
 
 export interface TelemetryStats {
