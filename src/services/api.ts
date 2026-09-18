@@ -33,11 +33,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   const token = window.localStorage.getItem("telemetry_access_token");
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (token) headers.set("Authorization", "Bearer " + token);
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+    response = await fetch(API_BASE_URL + path, { ...options, headers });
   } catch (error) {
     throw new ApiError(error instanceof Error ? error.message : "Network request failed", 0);
   }
@@ -57,7 +57,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const message =
       typeof data === "object" && data && "detail" in data
         ? String((data as { detail?: unknown }).detail)
-        : `Request failed with status ${response.status}`;
+        : "Request failed with status " + response.status;
     throw new ApiError(message, response.status, data);
   }
 
@@ -68,7 +68,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   login(email: string, password: string): Promise<AuthResponse> {
     const body = new URLSearchParams({ username: email, password });
-    return fetch(`${API_BASE_URL}/api/auth/login`, {
+    return fetch(API_BASE_URL + "/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,
@@ -91,6 +91,13 @@ export const api = {
     return request<AuthUser>("/api/auth/me");
   },
 
+  changePassword(payload: { current_password: string; new_password: string }): Promise<{ status: string }> {
+    return request<{ status: string }>("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   getHealth(): Promise<HealthResponse> {
     return request<HealthResponse>("/health");
   },
@@ -101,7 +108,7 @@ export const api = {
 
   getTelemetryHistory(limit = 100): Promise<TelemetryHistoryResponse> {
     const safeLimit = Math.max(1, Math.min(5000, Math.floor(limit)));
-    return request<TelemetryHistoryResponse>(`/api/telemetry/history?limit=${safeLimit}`);
+    return request<TelemetryHistoryResponse>("/api/telemetry/history?limit=" + safeLimit);
   },
 
   getTelemetryStats(): Promise<TelemetryStats> {
@@ -109,12 +116,12 @@ export const api = {
   },
 
   getAlerts(activeOnly = false): Promise<AlertsResponse> {
-    return request<AlertsResponse>(`/api/alerts?active_only=${activeOnly}`);
+    return request<AlertsResponse>("/api/alerts?active_only=" + activeOnly);
   },
 
   acknowledgeAlert(alertId: string): Promise<{ status: string; alert_id: string }> {
     return request<{ status: string; alert_id: string }>(
-      `/api/alerts/${encodeURIComponent(alertId)}/acknowledge`,
+      "/api/alerts/" + encodeURIComponent(alertId) + "/acknowledge",
       { method: "POST" }
     );
   },
@@ -140,10 +147,9 @@ export const api = {
   },
 
   setSimulationRate(rate: number): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>(
-      `/api/simulation/rate?rate=${encodeURIComponent(rate)}`,
-      { method: "POST" }
-    );
+    return request<SimulationControlResponse>("/api/simulation/rate?rate=" + encodeURIComponent(rate), {
+      method: "POST",
+    });
   },
 
   triggerAnomaly(payload: TriggerAnomalyPayload): Promise<TriggerAnomalyResponse> {
@@ -165,14 +171,14 @@ export const api = {
   },
 
   updateHost(id: string, payload: Partial<Pick<Host, "name" | "environment" | "is_active">>): Promise<Host> {
-    return request<Host>(`/api/hosts/${encodeURIComponent(id)}`, {
+    return request<Host>("/api/hosts/" + encodeURIComponent(id), {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
   },
 
   deleteHost(id: string): Promise<void> {
-    return request<void>(`/api/hosts/${encodeURIComponent(id)}`, { method: "DELETE" });
+    return request<void>("/api/hosts/" + encodeURIComponent(id), { method: "DELETE" });
   },
 
   getUsers(): Promise<UserRecord[]> {
@@ -187,7 +193,7 @@ export const api = {
   },
 
   updateUser(id: string, payload: Partial<{ role: string; is_active: boolean; password: string }>): Promise<UserRecord> {
-    return request<UserRecord>(`/api/users/${encodeURIComponent(id)}`, {
+    return request<UserRecord>("/api/users/" + encodeURIComponent(id), {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
