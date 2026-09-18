@@ -81,7 +81,8 @@ export const api = {
         } catch {
           // Keep the authentication fallback message when the response is not JSON.
         }
-        throw new ApiError(message, res.status);\n      }
+        throw new ApiError(message, res.status);
+      }
       return res.json() as Promise<AuthResponse>;
     });
   },
