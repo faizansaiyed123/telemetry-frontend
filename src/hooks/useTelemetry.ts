@@ -16,6 +16,7 @@ export function useTelemetry() {
   const [sequenceGapDetected, setSequenceGapDetected] = useState<boolean>(false);
 
   const lastSeqRef = useRef<number | null>(null);
+  const currentRef = useRef<TelemetryEvent | null>(null);
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEventsRef = useRef<TelemetryEvent[]>([]);
 
@@ -27,10 +28,9 @@ export function useTelemetry() {
     const incomingBatch = [...pendingEventsRef.current];
     pendingEventsRef.current = [];
 
-    setCurrent((prev) => {
-      setPrevious(prev);
-      return latest;
-    });
+    setPrevious(currentRef.current);
+    currentRef.current = latest;
+    setCurrent(latest);
 
     setStreamBuffer((prev) => {
       const merged = [...prev, ...incomingBatch];
@@ -95,6 +95,13 @@ export function useTelemetry() {
     setPrevious(null);
     setStreamBuffer([]);
     setHistoryEvents([]);
+    setLastReceivedAt(null);
+    currentRef.current = null;
+    pendingEventsRef.current = [];
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
     lastSeqRef.current = null;
     setSequenceGapDetected(false);
   }, []);
@@ -114,6 +121,7 @@ export function useTelemetry() {
 
         if (currRes.status === "fulfilled" && currRes.value.event) {
           setCurrent(currRes.value.event);
+          currentRef.current = currRes.value.event;
           lastSeqRef.current = currRes.value.event.sequence;
           setLastReceivedAt(Date.now());
         }
@@ -138,7 +146,10 @@ export function useTelemetry() {
     return () => {
       mounted = false;
       clearInterval(statsTimer);
-      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
+      }
     };
   }, [fetchStats]);
 
