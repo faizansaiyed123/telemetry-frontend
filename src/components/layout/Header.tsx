@@ -115,7 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Radio className="w-3.5 h-3.5 text-cyan-400" />
             <span className="text-slate-400">Rate:</span>
             <span className="font-semibold text-slate-200">
-              {simulationStatus?.rate ?? health?.stream_active ? 10 : 0} events/s
+              {simulationStatus?.rate ?? (health?.stream_active ? 10 : 0)} events/s
             </span>
           </div>
 
