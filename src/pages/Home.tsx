@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Gauge,
   LineChart,
-  Play,
   Radio,
   ShieldCheck,
   Server,
