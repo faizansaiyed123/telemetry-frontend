@@ -27,15 +27,17 @@ import { API_BASE_URL } from "../services/api.js";
 export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> = ({ user }) => {
   const telemetry = useTelemetry();
   const alerts = useAlerts();
+  const { handleIncomingTelemetry, fetchStats, fetchHistory, clearStream } = telemetry;
+  const { handleIncomingAlert, refresh: refreshAlerts, clearAlerts } = alerts;
 
   // Reset callback
   const handleReset = useCallback(() => {
-    telemetry.clearStream();
-    alerts.clearAlerts();
+    clearStream();
+    clearAlerts();
     setTimeout(() => {
-      telemetry.fetchStats();
-      telemetry.fetchHistory(50);
-      alerts.refresh();
+      fetchStats();
+      fetchHistory(50);
+      refreshAlerts();
     }, 400);
   }, [telemetry, alerts]);
 
@@ -53,7 +55,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
         console.log("[Backend System]", message.data);
       }
     },
-    [telemetry, alerts]
+    [handleIncomingTelemetry, handleIncomingAlert]
   );
 
   const { status: connectionStatus, reconnect } = useWebSocket(handleWsMessage);
