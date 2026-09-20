@@ -4,6 +4,7 @@ import { AppShell } from "./components/layout/AppShell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Home } from "./pages/Home.js";
 import { Login } from "./pages/Login.js";
+import { Signup } from "./pages/Signup.js";
 import { AlertsPage } from "./pages/AlertsPage.js";
 import { Analytics } from "./pages/Analytics.js";
 import { Hosts } from "./pages/Hosts.js";
@@ -57,6 +58,7 @@ function ProtectedApp() {
 export function App() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
   if (path === "/login") return <Login />;
+  if (path === "/signup") return <Signup />;
   if (path === "/app" || path.startsWith("/app/")) return <ErrorBoundary><ProtectedApp /></ErrorBoundary>;
   return <ErrorBoundary><Home /></ErrorBoundary>;
 }

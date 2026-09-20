@@ -68,26 +68,68 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function authRequest<T>(
+  path: string,
+  options: RequestInit,
+  fallbackMessage: string,
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(API_BASE_URL + path, options);
+  } catch (error) {
+    throw new ApiError(error instanceof Error ? error.message : "Network request failed", 0);
+  }
+
+  if (!response.ok) {
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      data = await response.text();
+    }
+
+    let message = fallbackMessage;
+    if (typeof data === "object" && data && "detail" in data) {
+      const detail = (data as { detail?: unknown }).detail;
+      if (typeof detail === "string") {
+        message = detail;
+      } else if (Array.isArray(detail)) {
+        const messages = detail
+          .map((item) => (typeof item === "object" && item && "msg" in item ? String((item as { msg?: unknown }).msg) : null))
+          .filter((item): item is string => Boolean(item));
+        if (messages.length > 0) message = messages.join(". ");
+      }
+    }
+    throw new ApiError(message, response.status, data);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 export const api = {
   login(email: string, password: string): Promise<AuthResponse> {
     const body = new URLSearchParams({ username: email, password });
-    return fetch(API_BASE_URL + "/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    }).then(async (res) => {
-      if (!res.ok) {
-        let message = "Invalid email or password";
-        try {
-          const data = await res.json();
-          if (typeof data?.detail === "string") message = data.detail;
-        } catch {
-          // Keep the authentication fallback message when the response is not JSON.
-        }
-        throw new ApiError(message, res.status);
-      }
-      return res.json() as Promise<AuthResponse>;
-    });
+    return authRequest<AuthResponse>(
+      "/api/auth/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      },
+      "Invalid email or password",
+    );
+  },
+
+  signup(email: string, password: string): Promise<AuthResponse> {
+    return authRequest<AuthResponse>(
+      "/api/auth/signup",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      },
+      "Unable to create your account",
+    );
   },
 
   me(): Promise<AuthUser> {
