@@ -10,6 +10,7 @@ export interface Alert {
   message: string;
   resolved: boolean;
   resolved_at?: string | null;
+  acknowledged?: boolean;
 }
 
 export interface AlertsResponse {

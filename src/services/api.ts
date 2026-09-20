@@ -45,6 +45,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (response.status === 401) {
     window.localStorage.removeItem("telemetry_access_token");
     window.localStorage.removeItem("telemetry_user");
+    if (window.location.pathname.startsWith("/app")) {
+      window.location.replace("/login");
+    }
   }
 
   if (!response.ok) {

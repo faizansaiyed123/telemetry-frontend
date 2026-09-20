@@ -77,6 +77,9 @@ export class TelemetryWebSocketService {
           if (event.code === 1008) {
             window.localStorage.removeItem("telemetry_access_token");
             window.localStorage.removeItem("telemetry_user");
+            if (window.location.pathname.startsWith("/app")) {
+              window.location.replace("/login");
+            }
           }
           this.setStatus("DISCONNECTED");
           if (event.code !== 1008) this.scheduleReconnect();
