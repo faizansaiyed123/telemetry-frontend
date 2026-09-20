@@ -2,10 +2,11 @@
 
 React + TypeScript web application for the Telemetry infrastructure observability platform.
 
-The frontend contains two public-facing experiences:
+The frontend contains three entry experiences:
 
-1. A public marketing homepage that explains the product and directs visitors into the workspace.
-2. An authenticated control center for live telemetry, alerts, analytics, hosts, administration, settings, and simulation controls.
+1. A public marketing homepage that explains the product and directs visitors into the platform.
+2. A public signup flow that creates viewer access and signs the user into the workspace.
+3. An authenticated control center for live telemetry, alerts, analytics, hosts, administration, settings, and simulation controls.
 
 ## Product overview
 
@@ -145,6 +146,7 @@ telemetry-frontend/
 |---|---|---|
 | / | Public product homepage | Public |
 | /login | Workspace sign-in | Public |
+| /signup | Create a viewer account | Public |
 | /app | Live telemetry overview | Required |
 | /app/alerts | Alert center | Required |
 | /app/analytics | Historical and aggregate analytics | Required |
@@ -209,7 +211,7 @@ Vite uses port 3000 by default.
 
 Open http://localhost:3000.
 
-The public homepage is at / and the authenticated application begins at /login.
+The public homepage is at /, account creation is at /signup, sign-in is at /login, and the authenticated application begins at /app.
 
 ---
 
@@ -245,6 +247,7 @@ The frontend expects the API contract implemented by the Telemetry backend.
 
 ```
 POST /api/auth/login
+POST /api/auth/signup
 GET  /api/auth/me
 POST /api/auth/change-password
 ```
@@ -295,13 +298,13 @@ Use wss:// when the backend is served over HTTPS.
 
 ## Authentication and session handling
 
-After login, the frontend stores the access token and lightweight user profile in browser storage.
+After signup or login, the frontend stores the access token and lightweight user profile in browser storage.
 
 The API service attaches the bearer token to authenticated requests.
 
 When the backend returns HTTP 401 or rejects WebSocket authentication, the stored session is cleared and the user is returned to the sign-in flow.
 
-The browser-stored profile is a UI convenience, not an authorization boundary. The backend validates the JWT and current user status on every protected request.
+Public signup always creates viewer access; role elevation remains an administrator action. The browser-stored profile is a UI convenience, not an authorization boundary. The backend validates the JWT and current user status on every protected request.
 
 ---
 
