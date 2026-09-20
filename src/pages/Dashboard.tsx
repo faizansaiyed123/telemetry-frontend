@@ -39,7 +39,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
       fetchHistory(50);
       refreshAlerts();
     }, 400);
-  }, [telemetry, alerts]);
+  }, [clearStream, clearAlerts, fetchStats, fetchHistory, refreshAlerts]);
 
   const simulation = useSimulation(handleReset);
   const canControlSimulation = user.role === "admin" || user.role === "operator";
@@ -48,9 +48,9 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
   const handleWsMessage = useCallback(
     (message: WebSocketMessage) => {
       if (message.type === "telemetry") {
-        telemetry.handleIncomingTelemetry(message.data);
+        handleIncomingTelemetry(message.data);
       } else if (message.type === "alert") {
-        alerts.handleIncomingAlert(message.data);
+        handleIncomingAlert(message.data);
       } else if (message.type === "system") {
         console.log("[Backend System]", message.data);
       }
