@@ -204,3 +204,47 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
     assert.ok(alertList[0].resolved_at);
   });
 });
+
+describe("WebSocket authentication handoff", () => {
+  it("requests the scoped token through the authenticated API client", async () => {
+    const originalWindow = globalThis.window;
+    const originalFetch = globalThis.fetch;
+
+    const requests: Array<{ url: string; init?: RequestInit }> = [];
+    globalThis.window = {
+      localStorage: {
+        getItem: (key: string) => key === "telemetry_access_token" ? "long-lived-jwt" : null,
+        removeItem: () => undefined,
+      },
+      location: { pathname: "/app", replace: () => undefined },
+    } as unknown as Window & typeof globalThis;
+
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      requests.push({ url: String(input), init });
+      return new Response(
+        JSON.stringify({
+          access_token: "short-lived-ws-token",
+          token_type: "bearer",
+          expires_in: 60,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    try {
+      const response = await api.getWebSocketToken();
+      assert.equal(response.access_token, "short-lived-ws-token");
+      assert.equal(response.expires_in, 60);
+      assert.equal(requests.length, 1);
+      assert.match(requests[0].url, /\/api\/auth\/ws-token$/);
+      assert.equal(requests[0].init?.method, "POST");
+      assert.equal(
+        new Headers(requests[0].init?.headers).get("Authorization"),
+        "Bearer long-lived-jwt",
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+      globalThis.window = originalWindow;
+    }
+  });
+});

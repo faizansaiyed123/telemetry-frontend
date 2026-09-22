@@ -14,6 +14,7 @@ import {
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
   TelemetrySeriesResponse,
+  WebSocketTokenResponse,
 } from "../types/app.js";
 
 export const API_BASE_URL =
@@ -132,6 +133,10 @@ export const api = {
       },
       "Unable to create your account",
     );
+  },
+
+  getWebSocketToken(): Promise<WebSocketTokenResponse> {
+    return request<WebSocketTokenResponse>("/api/auth/ws-token", { method: "POST" });
   },
 
   me(): Promise<AuthUser> {
