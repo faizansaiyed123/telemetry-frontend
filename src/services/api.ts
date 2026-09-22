@@ -13,6 +13,7 @@ import {
   Host,
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, AuditLog, PlatformMetrics, SLO, SLOStatus,
+  TelemetrySeriesResponse,
 } from "../types/app.js";
 
 export const API_BASE_URL =
@@ -162,6 +163,21 @@ export const api = {
   getTelemetryStats(hostId?: string): Promise<TelemetryStats> {
     const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
     return request<TelemetryStats>("/api/telemetry/stats" + params);
+  },
+
+  getTelemetrySeries(params: {
+    metric: AlertRule["metric"];
+    hostId?: string;
+    start?: string;
+    end?: string;
+    bucketSeconds?: number;
+  }): Promise<TelemetrySeriesResponse> {
+    const query = new URLSearchParams({ metric: params.metric });
+    if (params.hostId) query.set("host_id", params.hostId);
+    if (params.start) query.set("start", params.start);
+    if (params.end) query.set("end", params.end);
+    if (params.bucketSeconds) query.set("bucket_seconds", String(params.bucketSeconds));
+    return request<TelemetrySeriesResponse>("/api/telemetry/series?" + query.toString());
   },
 
   getAlerts(activeOnly = false): Promise<AlertsResponse> {
