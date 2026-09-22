@@ -54,9 +54,9 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text(
                 "Know what your infrastructure is doing"
             )
-            expect(page.get_by_role("link", name="Open dashboard")).to_be_visible()
-            expect(page.get_by_role("link", name="Explore the dashboard")).to_be_visible()
-            page.get_by_role("link", name="Explore the dashboard").click()
+            expect(page.get_by_role("link", name="Sign in")).to_be_visible()
+            expect(page.get_by_role("link", name="Create account")).to_be_visible()
+            page.get_by_role("link", name="Sign in").click()
             expect(page).to_have_url(f"{BASE_URL}/login")
             snap(page, "01-home-to-login")
 
