@@ -11,6 +11,10 @@ export interface Alert {
   resolved: boolean;
   resolved_at?: string | null;
   acknowledged?: boolean;
+  host_id?: string | null;
+  source?: "anomaly" | "rule";
+  rule_id?: string | null;
+  incident_id?: string | null;
 }
 
 export interface AlertsResponse {
