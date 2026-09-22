@@ -263,3 +263,10 @@ export interface TelemetrySeriesResponse {
   bucket_seconds: number;
   points: TelemetrySeriesPoint[];
 }
+
+
+export interface WebSocketTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
