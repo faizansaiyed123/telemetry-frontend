@@ -1,4 +1,4 @@
-"""Telemetry freshness helpers for monitored hosts."""
+/** Telemetry freshness helpers for monitored hosts. */
 
 export type TelemetryFreshness = "online" | "stale" | "silent" | "inactive";
 
