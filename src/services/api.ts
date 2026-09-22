@@ -12,7 +12,7 @@ import {
   AlertsResponse,
   Host,
   UserRecord,
-  ApiKey, ApiKeyCreated, AlertRule, Incident, AuditLog, PlatformMetrics, SLO, SLOStatus,
+  ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
   TelemetrySeriesResponse,
 } from "../types/app.js";
 
@@ -258,6 +258,9 @@ export const api = {
   },
   getIncident(id: string): Promise<Incident> {
     return request<Incident>("/api/incidents/" + encodeURIComponent(id));
+  },
+  getIncidentEvidence(id: string): Promise<IncidentEvidence> {
+    return request<IncidentEvidence>("/api/incidents/" + encodeURIComponent(id) + "/evidence");
   },
   acknowledgeIncident(id: string): Promise<Incident> {
     return request<Incident>("/api/incidents/" + encodeURIComponent(id) + "/acknowledge", { method: "POST" });
