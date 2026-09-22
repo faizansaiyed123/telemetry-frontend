@@ -125,3 +125,93 @@ export interface UserRecord {
   role: string;
   is_active: boolean;
 }
+
+
+export interface ApiKey {
+  id: string;
+  host_id: string;
+  name: string;
+  key_prefix: string;
+  created_at: string;
+  last_used_at?: string | null;
+  revoked_at?: string | null;
+}
+export interface ApiKeyCreated extends ApiKey { secret: string; }
+
+export interface AlertRule {
+  id: string;
+  name: string;
+  metric: keyof Pick<TelemetryEvent, "cpu"|"memory"|"temperature"|"network_mbps"|"requests_per_second"|"error_rate"|"latency_ms">;
+  operator: ">" | ">=" | "<" | "<=";
+  threshold: number;
+  duration_seconds: number;
+  cooldown_seconds: number;
+  severity: Severity;
+  enabled: boolean;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface Incident {
+  id: string;
+  host_id: string | null;
+  title: string;
+  status: "open" | "acknowledged" | "resolved";
+  severity: Severity;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved_at?: string | null;
+  alert_ids: string[];
+  active_alert_count: number;
+}
+export interface AuditLog {
+  id: number;
+  actor_user_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  outcome: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  details: string | null;
+  created_at: string;
+}
+export interface SLO {
+  id: string;
+  name: string;
+  host_id: string;
+  metric: AlertRule["metric"];
+  operator: AlertRule["operator"];
+  threshold: number;
+  objective_percent: number;
+  window_hours: number;
+  enabled: boolean;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface SLOStatus {
+  slo_id: string;
+  name: string;
+  host_id: string;
+  metric: AlertRule["metric"];
+  operator: AlertRule["operator"];
+  threshold: number;
+  objective_percent: number;
+  window_hours: number;
+  window_start: string;
+  window_end: string;
+  total_samples: number;
+  good_samples: number;
+  bad_samples: number;
+  sli_percent: number;
+  error_budget_percent: number;
+  error_budget_remaining_percent: number;
+  compliant: boolean;
+}
+export interface PlatformMetrics {
+  uptime_seconds: number;
+  counters: Record<string, number>;
+  gauges: Record<string, number>;
+  runtime: Record<string, number>;
+}
