@@ -51,13 +51,17 @@ The /app area provides:
 - Live metric cards for CPU, memory, temperature, throughput, requests/sec, latency, and error rate
 - Live canvas-based telemetry charts
 - Real-time alert feed
-- Historical telemetry inspection
+- Historical telemetry inspection with bounded server-side time-series buckets and p95
 - Backend-computed statistics
+- Correlated incident investigation and acknowledgement
+- SLOs with live SLI and remaining error budget
 - Simulation start/pause/resume/reset
 - Stream-rate controls
 - Controlled anomaly injection
 - Host management
 - User and role administration
+- Administrator operations console for alert rules, agent credentials, runtime metrics, and audit history
+- Host heartbeat and agent version visibility
 - Self-service password change
 - API documentation links
 - WebSocket connection and reconnect status
@@ -150,7 +154,10 @@ telemetry-frontend/
 | /app | Live telemetry overview | Required |
 | /app/alerts | Alert center | Required |
 | /app/analytics | Historical and aggregate analytics | Required |
-| /app/hosts | Host inventory | Required |
+| /app/hosts | Host inventory and agent heartbeat | Required |
+| /app/incidents | Correlated incidents and evidence windows | Required |
+| /app/slos | SLO and error-budget status | Required |
+| /app/operations | Runtime, alert rules, agent keys, audit log | Admin |
 | /app/admin | User administration | Admin |
 | /app/settings | Account and password settings | Required |
 
@@ -258,6 +265,7 @@ POST /api/auth/change-password
 GET /api/telemetry/current
 GET /api/telemetry/history
 GET /api/telemetry/stats
+GET /api/telemetry/series
 ```
 
 ### Alerts
@@ -277,6 +285,25 @@ POST /api/simulation/resume
 POST /api/simulation/reset
 POST /api/simulation/rate
 POST /api/simulation/trigger
+```
+
+### Incidents, SLOs, and platform operations
+
+```
+GET  /api/incidents
+GET  /api/incidents/{incident_id}
+POST /api/incidents/{incident_id}/acknowledge
+
+GET/POST/PATCH/DELETE /api/alert-rules...
+GET/POST/PATCH/DELETE /api/slos...
+GET  /api/slos/{slo_id}/status
+
+GET/POST /api/api-keys...
+POST /api/api-keys/{key_id}/revoke
+GET  /api/observability/metrics
+GET  /api/observability/audit-logs
+GET  /api/observability/metrics/prometheus
+POST /api/ingest/v1/telemetry
 ```
 
 ### Hosts and users
@@ -480,3 +507,12 @@ This provides automated checks for type regressions, unit-test failures, and pro
 ## License
 
 MIT
+
+
+## Production-oriented frontend capabilities
+
+The authenticated control center is intentionally organized around operational workflows rather than presentation-only dashboards. Analytics queries bounded, database-side aggregates; Incidents groups related alert signals into an investigation surface; SLOs expose reliability objectives and remaining error budget; and the administrator Operations console exposes runtime pipeline pressure, stateful threshold rules, host-scoped agent credentials, and the audit trail.
+
+Agent secrets are treated as one-time credentials: the UI only displays the returned secret immediately after creation and the listing API exposes only a prefix and lifecycle metadata. The browser never treats its cached role as an authorization boundary; the backend remains authoritative.
+
+The live dashboard also surfaces WebSocket sequence gaps and links operators to historical Analytics for backfill investigation.

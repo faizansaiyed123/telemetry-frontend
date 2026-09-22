@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import {
   Activity,
   AlertOctagon,
+  AlertTriangle,
   Cpu,
   Flame,
   Globe,
@@ -95,6 +96,18 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
           >
             <Zap className="w-4 h-4 text-cyan-400 shrink-0" />
             <span>{simulation.notification.message}</span>
+          </div>
+        </div>
+      )}
+
+      {telemetry.sequenceGapDetected && (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
+          <div role="status" className="flex flex-col gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+              <div><div className="text-xs font-semibold text-amber-200">Stream sequence gap detected</div><div className="mt-1 text-xs text-slate-500">Live frames were skipped or reordered. Historical backfill remains available through Analytics.</div></div>
+            </div>
+            <a href="/app/analytics" className="shrink-0 text-xs font-semibold text-amber-200 hover:text-white">Inspect history →</a>
           </div>
         </div>
       )}

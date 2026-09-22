@@ -12,6 +12,8 @@ import {
   AlertsResponse,
   Host,
   UserRecord,
+  ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
+  TelemetrySeriesResponse,
 } from "../types/app.js";
 
 export const API_BASE_URL =
@@ -151,13 +153,31 @@ export const api = {
     return request<CurrentTelemetryResponse>("/api/telemetry/current");
   },
 
-  getTelemetryHistory(limit = 100): Promise<TelemetryHistoryResponse> {
+  getTelemetryHistory(limit = 100, hostId?: string): Promise<TelemetryHistoryResponse> {
     const safeLimit = Math.max(1, Math.min(5000, Math.floor(limit)));
-    return request<TelemetryHistoryResponse>("/api/telemetry/history?limit=" + safeLimit);
+    const params = new URLSearchParams({ limit: String(safeLimit) });
+    if (hostId) params.set("host_id", hostId);
+    return request<TelemetryHistoryResponse>("/api/telemetry/history?" + params.toString());
   },
 
-  getTelemetryStats(): Promise<TelemetryStats> {
-    return request<TelemetryStats>("/api/telemetry/stats");
+  getTelemetryStats(hostId?: string): Promise<TelemetryStats> {
+    const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<TelemetryStats>("/api/telemetry/stats" + params);
+  },
+
+  getTelemetrySeries(params: {
+    metric: AlertRule["metric"];
+    hostId?: string;
+    start?: string;
+    end?: string;
+    bucketSeconds?: number;
+  }): Promise<TelemetrySeriesResponse> {
+    const query = new URLSearchParams({ metric: params.metric });
+    if (params.hostId) query.set("host_id", params.hostId);
+    if (params.start) query.set("start", params.start);
+    if (params.end) query.set("end", params.end);
+    if (params.bucketSeconds) query.set("bucket_seconds", String(params.bucketSeconds));
+    return request<TelemetrySeriesResponse>("/api/telemetry/series?" + query.toString());
   },
 
   getAlerts(activeOnly = false): Promise<AlertsResponse> {
@@ -206,6 +226,64 @@ export const api = {
 
   getHosts(): Promise<Host[]> {
     return request<Host[]>("/api/hosts");
+  },
+
+  getApiKeys(hostId?: string): Promise<ApiKey[]> {
+    const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<ApiKey[]>("/api/api-keys" + params);
+  },
+  createApiKey(hostId: string, name: string): Promise<ApiKeyCreated> {
+    return request<ApiKeyCreated>("/api/api-keys/hosts/" + encodeURIComponent(hostId), {
+      method: "POST", body: JSON.stringify({ name }),
+    });
+  },
+  revokeApiKey(id: string): Promise<ApiKey> {
+    return request<ApiKey>("/api/api-keys/" + encodeURIComponent(id) + "/revoke", { method: "POST" });
+  },
+
+  getAlertRules(): Promise<AlertRule[]> { return request<AlertRule[]>("/api/alert-rules"); },
+  createAlertRule(payload: Omit<AlertRule, "id"|"created_by"|"created_at"|"updated_at">): Promise<AlertRule> {
+    return request<AlertRule>("/api/alert-rules", { method: "POST", body: JSON.stringify(payload) });
+  },
+  updateAlertRule(id: string, payload: Partial<Omit<AlertRule, "id"|"created_by"|"created_at"|"updated_at">>): Promise<AlertRule> {
+    return request<AlertRule>("/api/alert-rules/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  },
+  deleteAlertRule(id: string): Promise<void> {
+    return request<void>("/api/alert-rules/" + encodeURIComponent(id), { method: "DELETE" });
+  },
+
+  getIncidents(status?: string): Promise<Incident[]> {
+    const params = status ? "?status=" + encodeURIComponent(status) : "";
+    return request<Incident[]>("/api/incidents" + params);
+  },
+  getIncident(id: string): Promise<Incident> {
+    return request<Incident>("/api/incidents/" + encodeURIComponent(id));
+  },
+  getIncidentEvidence(id: string): Promise<IncidentEvidence> {
+    return request<IncidentEvidence>("/api/incidents/" + encodeURIComponent(id) + "/evidence");
+  },
+  acknowledgeIncident(id: string): Promise<Incident> {
+    return request<Incident>("/api/incidents/" + encodeURIComponent(id) + "/acknowledge", { method: "POST" });
+  },
+
+  getSlos(): Promise<SLO[]> { return request<SLO[]>("/api/slos"); },
+  getSloStatus(id: string): Promise<SLOStatus> { return request<SLOStatus>("/api/slos/" + encodeURIComponent(id) + "/status"); },
+  createSlo(payload: Omit<SLO, "id"|"created_by"|"created_at"|"updated_at">): Promise<SLO> {
+    return request<SLO>("/api/slos", { method: "POST", body: JSON.stringify(payload) });
+  },
+  updateSlo(id: string, payload: Partial<Omit<SLO, "id"|"created_by"|"created_at"|"updated_at">>): Promise<SLO> {
+    return request<SLO>("/api/slos/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  },
+  deleteSlo(id: string): Promise<void> {
+    return request<void>("/api/slos/" + encodeURIComponent(id), { method: "DELETE" });
+  },
+
+  getPlatformMetrics(): Promise<PlatformMetrics> {
+    return request<PlatformMetrics>("/api/observability/metrics");
+  },
+  getAuditLogs(limit = 100): Promise<AuditLog[]> {
+    const safe = Math.max(1, Math.min(500, Math.floor(limit)));
+    return request<AuditLog[]>("/api/observability/audit-logs?limit=" + safe);
   },
 
   createHost(payload: { name: string; environment: string }): Promise<Host> {

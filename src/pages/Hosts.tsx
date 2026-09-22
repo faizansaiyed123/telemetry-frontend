@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Boxes, Pencil, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { Boxes, Clock3, Pencil, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import type { AuthUser, Host } from "../types/app.js";
 import { api } from "../services/api.js";
+import { getTelemetryFreshness } from "../utils/hostHealth.js";
 
 export const Hosts: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [hosts, setHosts] = useState<Host[]>([]);
@@ -100,6 +101,13 @@ export const Hosts: React.FC<{ user: AuthUser }> = ({ user }) => {
 
   const canManage = user.role === "admin";
 
+  const freshnessClass = (status: ReturnType<typeof getTelemetryFreshness>["status"]) => {
+    if (status === "online") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+    if (status === "stale") return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+    if (status === "silent") return "border-rose-500/20 bg-rose-500/10 text-rose-300";
+    return "border-white/8 bg-white/[0.02] text-slate-500";
+  };
+
   return (
     <main className="mx-auto max-w-7xl space-y-6 p-5 sm:p-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -146,7 +154,23 @@ export const Hosts: React.FC<{ user: AuthUser }> = ({ user }) => {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/5"><Boxes className="h-4 w-4 text-cyan-300" /></div>
-                      <div><div className="text-sm font-medium text-white">{host.name}</div><div className="mt-1 text-xs text-slate-600">{host.environment}</div></div>
+                      <div className="min-w-0"><div className="text-sm font-medium text-white">{host.name}</div><div className="mt-1 text-xs text-slate-600">{host.environment}</div><div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                        {(() => {
+                          const freshness = getTelemetryFreshness(host.last_seen_at, host.is_active);
+                          return (
+                            <>
+                              <span className={"inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 " + freshnessClass(freshness.status)}>
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                {freshness.label}
+                                {freshness.ageSeconds !== null && <span className="opacity-70">· {freshness.ageSeconds}s ago</span>}
+                              </span>
+                              {host.last_seen_at && <span className="text-slate-600">Last seen {new Date(host.last_seen_at).toLocaleString()}</span>}
+                              {!host.last_seen_at && <span className="text-slate-600">{host.is_active ? "Waiting for first agent sample" : "Host is inactive"}</span>}
+                            </>
+                          );
+                        })()}
+                        {host.agent_version && <span className="rounded-full border border-cyan-400/10 bg-cyan-400/5 px-2 py-0.5 text-cyan-300">Agent {host.agent_version}</span>}
+                      </div></div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={"rounded-full border px-3 py-1.5 text-xs " + (host.is_active ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-white/8 text-slate-500")}>{host.is_active ? "Active" : "Inactive"}</span>
