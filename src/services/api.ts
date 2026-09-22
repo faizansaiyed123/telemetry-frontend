@@ -13,7 +13,7 @@ import {
   Host,
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
-  TelemetrySeriesResponse,
+  TelemetrySeriesResponse, ChangeEvent, ChangeEventCreate,
 } from "../types/app.js";
 
 export const API_BASE_URL =
@@ -284,6 +284,18 @@ export const api = {
   getAuditLogs(limit = 100): Promise<AuditLog[]> {
     const safe = Math.max(1, Math.min(500, Math.floor(limit)));
     return request<AuditLog[]>("/api/observability/audit-logs?limit=" + safe);
+  },
+
+  getChangeEvents(hostId?: string): Promise<ChangeEvent[]> {
+    const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<ChangeEvent[]>("/api/changes" + params);
+  },
+
+  createChangeEvent(payload: ChangeEventCreate): Promise<ChangeEvent> {
+    return request<ChangeEvent>("/api/changes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
 
   createHost(payload: { name: string; environment: string }): Promise<Host> {
