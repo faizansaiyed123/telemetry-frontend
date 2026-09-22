@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Clock3, Filter, RefreshCw, ShieldAlert } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock3, Filter, GitBranch, RefreshCw, ShieldAlert } from "lucide-react";
 import type { AuthUser, Incident } from "../types/app.js";
 import { api } from "../services/api.js";
 
@@ -31,6 +31,8 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [evidence, setEvidence] = useState<import("../types/app.js").IncidentEvidence | null>(null);
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
   const canAcknowledge = user.role === "admin" || user.role === "operator";
 
   async function load() {
@@ -57,6 +59,26 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
     () => incidents.find((incident) => incident.id === selectedId) ?? null,
     [incidents, selectedId],
   );
+
+  useEffect(() => {
+    let mounted = true;
+    if (!selectedId) {
+      setEvidence(null);
+      return;
+    }
+    setEvidenceLoading(true);
+    api.getIncidentEvidence(selectedId)
+      .then((data) => {
+        if (mounted) setEvidence(data);
+      })
+      .catch((err) => {
+        if (mounted) setError(err instanceof Error ? err.message : "Unable to load incident evidence.");
+      })
+      .finally(() => {
+        if (mounted) setEvidenceLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [selectedId]);
 
   async function acknowledge(id: string) {
     setWorking(id);
@@ -207,11 +229,51 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
               </div>
 
               <div className="mt-6 rounded-xl border border-cyan-400/10 bg-cyan-400/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs font-medium text-cyan-200"><Clock3 className="h-3.5 w-3.5" />Evidence window</div>
-                <p className="mt-2 text-xs leading-5 text-slate-600">
-                  First signal: {new Date(selected.first_seen_at).toLocaleString()} · Last signal: {new Date(selected.last_seen_at).toLocaleString()}.
-                  The incident remains open while one or more correlated alerts are active.
-                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs font-medium text-cyan-200"><Clock3 className="h-3.5 w-3.5" />Correlated evidence</div>
+                  {evidenceLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300" />}
+                </div>
+                {evidence ? (
+                  <>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Alerts</div><div className="mt-1 text-lg font-semibold text-white">{evidence.alert_count}</div></div>
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Metrics</div><div className="mt-1 text-lg font-semibold text-white">{evidence.metric_count}</div></div>
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Changes</div><div className="mt-1 text-lg font-semibold text-white">{evidence.change_count}</div></div>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {evidence.timeline.map((item) => (
+                        <div key={item.kind + ":" + item.reference_id} className="flex gap-3">
+                          <div className={"mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border " + (item.kind === "change" ? "border-cyan-400/10 bg-cyan-400/5 text-cyan-300" : "border-rose-400/10 bg-rose-400/5 text-rose-300")}>
+                            {item.kind === "change" ? <GitBranch className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-medium text-slate-200">{item.title}</div>
+                            <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-slate-600">
+                              <span>{new Date(item.timestamp).toLocaleString()}</span>
+                              <span>{item.kind === "change" ? "Change" : item.source ?? "Alert"}</span>
+                              {item.severity && <span>{item.severity}</span>}
+                              {item.status && <span>{item.status}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 border-t border-white/6 pt-4">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Findings</div>
+                      <div className="mt-2 space-y-2">
+                        {evidence.findings.map((finding) => <p key={finding} className="text-xs leading-5 text-slate-500">{finding}</p>)}
+                      </div>
+                    </div>
+                    <p className="mt-4 text-[10px] leading-4 text-slate-600">
+                      Correlation window: ±{evidence.correlation_window_minutes} minutes. Findings are evidence-based and do not claim a root cause that was not observed.
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-2 text-xs leading-5 text-slate-600">
+                    First signal: {new Date(selected.first_seen_at).toLocaleString()} · Last signal: {new Date(selected.last_seen_at).toLocaleString()}.
+                    {evidenceLoading ? " Loading correlated events…" : " No evidence details available yet."}
+                  </p>
+                )}
               </div>
             </>
           )}
