@@ -173,6 +173,27 @@ export interface Incident {
   alert_ids: string[];
   active_alert_count: number;
 }
+
+export interface IncidentTimelineItem {
+  kind: "alert" | "change";
+  timestamp: string;
+  title: string;
+  severity?: Severity | null;
+  status?: string | null;
+  reference_id: string;
+  source?: string | null;
+}
+
+export interface IncidentEvidence {
+  incident: Incident;
+  timeline: IncidentTimelineItem[];
+  alert_count: number;
+  metric_count: number;
+  change_count: number;
+  correlation_window_minutes: number;
+  findings: string[];
+}
+
 export interface AuditLog {
   id: number;
   actor_user_id: string | null;
