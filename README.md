@@ -257,6 +257,7 @@ POST /api/auth/login
 POST /api/auth/signup
 GET  /api/auth/me
 POST /api/auth/change-password
+POST /api/auth/ws-token
 ```
 
 ### Telemetry
@@ -316,7 +317,7 @@ GET/POST/PATCH         /api/users...
 ### Live stream
 
 ```
-ws://localhost:8000/ws/telemetry?token=<jwt>
+ws://localhost:8000/ws/telemetry?token=<one-time-token>
 ```
 
 Use wss:// when the backend is served over HTTPS.
@@ -327,7 +328,9 @@ Use wss:// when the backend is served over HTTPS.
 
 After signup or login, the frontend stores the access token and lightweight user profile in browser storage.
 
-The API service attaches the bearer token to authenticated requests.
+The API service attaches the bearer token to authenticated HTTP requests.
+
+Before opening the live stream, the browser exchanges the authenticated session for a short-lived, single-use WebSocket handoff token through `POST /api/auth/ws-token`. The long-lived API JWT is never placed directly in the WebSocket URL. Reconnects obtain a fresh handoff token, while concurrent connection attempts share one token request so one-time credentials are not accidentally consumed.
 
 When the backend returns HTTP 401 or rejects WebSocket authentication, the stored session is cleared and the user is returned to the sign-in flow.
 
@@ -345,6 +348,7 @@ The client also:
 
 - tracks sequence gaps
 - detects stream resets
+- requests a fresh scoped handoff credential for every connection/reconnect
 - reconnects with bounded exponential backoff
 - removes WebSocket subscriptions during cleanup
 - clears pending telemetry when simulation state is reset
