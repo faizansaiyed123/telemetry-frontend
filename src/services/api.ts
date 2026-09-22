@@ -12,6 +12,11 @@ import {
   AlertsResponse,
   Host,
   UserRecord,
+  Incident,
+  IncidentEvidence,
+  SLO,
+  SLOStatus,
+  ChangeEvent,
 } from "../types/app.js";
 
 export const API_BASE_URL =
@@ -224,6 +229,76 @@ export const api = {
 
   deleteHost(id: string): Promise<void> {
     return request<void>("/api/hosts/" + encodeURIComponent(id), { method: "DELETE" });
+  },
+
+  getIncidents(status?: string): Promise<Incident[]> {
+    const query = status ? "?status=" + encodeURIComponent(status) : "";
+    return request<Incident[]>("/api/incidents" + query);
+  },
+
+  getIncidentEvidence(incidentId: string): Promise<IncidentEvidence> {
+    return request<IncidentEvidence>(
+      "/api/incidents/" + encodeURIComponent(incidentId) + "/evidence"
+    );
+  },
+
+  acknowledgeIncident(incidentId: string): Promise<Incident> {
+    return request<Incident>(
+      "/api/incidents/" + encodeURIComponent(incidentId) + "/acknowledge",
+      { method: "POST" }
+    );
+  },
+
+  getSLOs(): Promise<SLO[]> {
+    return request<SLO[]>("/api/slos");
+  },
+
+  getSLOStatus(sloId: string): Promise<SLOStatus> {
+    return request<SLOStatus>(
+      "/api/slos/" + encodeURIComponent(sloId) + "/status"
+    );
+  },
+
+  createSLO(payload: {
+    name: string;
+    host_id: string;
+    metric: string;
+    operator: string;
+    threshold: number;
+    objective_percent: number;
+    window_hours: number;
+    enabled?: boolean;
+  }): Promise<SLO> {
+    return request<SLO>("/api/slos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteSLO(sloId: string): Promise<void> {
+    return request<void>("/api/slos/" + encodeURIComponent(sloId), {
+      method: "DELETE",
+    });
+  },
+
+  getChangeEvents(hostId?: string): Promise<ChangeEvent[]> {
+    const query = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<ChangeEvent[]>("/api/changes" + query);
+  },
+
+  createChangeEvent(payload: {
+    event_type: string;
+    title: string;
+    description?: string;
+    host_id?: string;
+    source?: string;
+    external_ref?: string;
+    occurred_at?: string;
+  }): Promise<ChangeEvent> {
+    return request<ChangeEvent>("/api/changes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
 
   getUsers(): Promise<UserRecord[]> {
