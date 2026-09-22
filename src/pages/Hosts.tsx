@@ -146,7 +146,7 @@ export const Hosts: React.FC<{ user: AuthUser }> = ({ user }) => {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-400/5"><Boxes className="h-4 w-4 text-cyan-300" /></div>
-                      <div><div className="text-sm font-medium text-white">{host.name}</div><div className="mt-1 text-xs text-slate-600">{host.environment}</div></div>
+                      <div className="min-w-0"><div className="text-sm font-medium text-white">{host.name}</div><div className="mt-1 text-xs text-slate-600">{host.environment}</div><div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]"><span className={host.last_seen_at ? "text-emerald-300" : "text-slate-600"}>{host.last_seen_at ? "Seen " + new Date(host.last_seen_at).toLocaleString() : "No telemetry heartbeat yet"}</span>{host.agent_version && <span className="rounded-full border border-cyan-400/10 bg-cyan-400/5 px-2 py-0.5 text-cyan-300">Agent {host.agent_version}</span>}</div></div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={"rounded-full border px-3 py-1.5 text-xs " + (host.is_active ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-white/8 text-slate-500")}>{host.is_active ? "Active" : "Inactive"}</span>
