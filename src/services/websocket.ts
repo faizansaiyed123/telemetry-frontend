@@ -1,5 +1,5 @@
+import { api, API_BASE_URL } from "./api.js";
 import { ConnectionStatus, WebSocketMessage } from "../types/websocket.js";
-import { API_BASE_URL } from "./api.js";
 
 type MessageHandler = (message: WebSocketMessage) => void;
 type StatusHandler = (status: ConnectionStatus) => void;
@@ -12,19 +12,34 @@ export class TelemetryWebSocketService {
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 30;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private tokenRequest: Promise<string> | null = null;
+  private connectGeneration = 0;
   private intentionalClose = false;
 
-  private getWebSocketUrl(): string {
-    const token = window.localStorage.getItem("telemetry_access_token");
-    if (!token) throw new Error("Authentication required");
+  private async fetchWebSocketToken(): Promise<string> {
+    if (this.tokenRequest) return this.tokenRequest;
 
-    let base: URL;
-    if (API_BASE_URL) {
-      base = new URL(API_BASE_URL);
-    } else {
-      base = new URL(window.location.origin);
+    this.tokenRequest = api
+      .getWebSocketToken()
+      .then((response) => response.access_token)
+      .finally(() => {
+        this.tokenRequest = null;
+      });
+
+    return this.tokenRequest;
+  }
+
+  private async getWebSocketUrl(): Promise<string> {
+    if (!window.localStorage.getItem("telemetry_access_token")) {
+      throw new Error("Authentication required");
     }
 
+    const token = await this.fetchWebSocketToken();
+    if (this.intentionalClose) {
+      throw new Error("Connection cancelled");
+    }
+
+    const base = new URL(API_BASE_URL || window.location.origin);
     const protocol = base.protocol === "https:" ? "wss:" : "ws:";
     const url = new URL(`${protocol}//${base.host}/ws/telemetry`);
     url.searchParams.set("token", token);
@@ -46,17 +61,35 @@ export class TelemetryWebSocketService {
     }
 
     this.intentionalClose = false;
+    this.connectGeneration += 1;
+    const generation = this.connectGeneration;
     this.setStatus(this.reconnectAttempts > 0 ? "RECONNECTING" : "CONNECTING");
+    void this.openSocket(generation);
+  }
 
+  private async openSocket(generation: number): Promise<void> {
     try {
-      this.ws = new WebSocket(this.getWebSocketUrl());
+      const url = await this.getWebSocketUrl();
 
-      this.ws.onopen = () => {
+      if (
+        this.intentionalClose ||
+        generation !== this.connectGeneration ||
+        this.ws
+      ) {
+        return;
+      }
+
+      const socket = new WebSocket(url);
+      this.ws = socket;
+
+      socket.onopen = () => {
+        if (this.ws !== socket) return;
         this.reconnectAttempts = 0;
         this.setStatus("LIVE");
       };
 
-      this.ws.onmessage = (event) => {
+      socket.onmessage = (event) => {
+        if (this.ws !== socket) return;
         try {
           const parsed = JSON.parse(event.data) as WebSocketMessage;
           if (parsed && typeof parsed.type === "string") {
@@ -67,27 +100,44 @@ export class TelemetryWebSocketService {
         }
       };
 
-      this.ws.onerror = () => {
-        this.setStatus("ERROR");
+      socket.onerror = () => {
+        if (this.ws === socket) this.setStatus("ERROR");
       };
 
-      this.ws.onclose = (event) => {
+      socket.onclose = (event) => {
+        if (this.ws !== socket) return;
         this.ws = null;
-        if (!this.intentionalClose) {
-          if (event.code === 1008) {
-            window.localStorage.removeItem("telemetry_access_token");
-            window.localStorage.removeItem("telemetry_user");
-            if (window.location.pathname.startsWith("/app")) {
-              window.location.replace("/login");
-            }
-          }
+
+        if (this.intentionalClose || generation !== this.connectGeneration) {
           this.setStatus("DISCONNECTED");
-          if (event.code !== 1008) this.scheduleReconnect();
-        } else {
-          this.setStatus("DISCONNECTED");
+          return;
         }
+
+        if (event.code === 1008) {
+          window.localStorage.removeItem("telemetry_access_token");
+          window.localStorage.removeItem("telemetry_user");
+          this.setStatus("DISCONNECTED");
+          if (window.location.pathname.startsWith("/app")) {
+            window.location.replace("/login");
+          }
+          return;
+        }
+
+        this.setStatus("DISCONNECTED");
+        this.scheduleReconnect();
       };
-    } catch {
+    } catch (error) {
+      if (this.intentionalClose || generation !== this.connectGeneration) return;
+
+      if (error instanceof Error && error.message === "Authentication required") {
+        this.setStatus("DISCONNECTED");
+        return;
+      }
+
+      if (error instanceof Error && error.message === "Connection cancelled") return;
+
+      // api.request() handles a 401 by clearing the session and redirecting.
+      // Other token/network failures are treated like transient connection errors.
       this.setStatus("ERROR");
       this.scheduleReconnect();
     }
@@ -95,14 +145,19 @@ export class TelemetryWebSocketService {
 
   public disconnect(): void {
     this.intentionalClose = true;
+    this.connectGeneration += 1;
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+
     if (this.ws) {
-      this.ws.close();
+      const socket = this.ws;
       this.ws = null;
+      socket.close();
     }
+
     this.setStatus("DISCONNECTED");
   }
 
