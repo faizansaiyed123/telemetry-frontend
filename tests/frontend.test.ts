@@ -4,6 +4,7 @@ import { formatMetricNumber, formatMetricValue, formatUptime, formatTimestamp, g
 import { WebSocketMessage } from "../src/types/websocket.js";
 import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
+import { api } from "../src/services/api.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -84,6 +85,25 @@ describe("WebSocket Message Parsing & Discriminated Unions", () => {
       assert.equal(parsed.data.severity, "CRITICAL");
       assert.equal(parsed.data.resolved, false);
     }
+  });
+});
+
+describe("Production operations API surface", () => {
+  it("exposes the frontend clients for the backend operations surface", () => {
+    assert.equal(typeof api.getIncidents, "function");
+    assert.equal(typeof api.acknowledgeIncident, "function");
+    assert.equal(typeof api.getSlos, "function");
+    assert.equal(typeof api.getSloStatus, "function");
+    assert.equal(typeof api.createSlo, "function");
+    assert.equal(typeof api.getAlertRules, "function");
+    assert.equal(typeof api.createAlertRule, "function");
+    assert.equal(typeof api.updateAlertRule, "function");
+    assert.equal(typeof api.deleteAlertRule, "function");
+    assert.equal(typeof api.getApiKeys, "function");
+    assert.equal(typeof api.createApiKey, "function");
+    assert.equal(typeof api.revokeApiKey, "function");
+    assert.equal(typeof api.getPlatformMetrics, "function");
+    assert.equal(typeof api.getAuditLogs, "function");
   });
 });
 
