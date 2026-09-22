@@ -36,6 +36,10 @@ def logout(page: Page) -> None:
     expect(page).to_have_url(f"{BASE_URL}/", timeout=10_000)
 
 
+def sequence_value(page: Page) -> str:
+    return page.get_by_text("Seq:", exact=True).locator("..").locator("span.font-mono").inner_text()
+
+
 @pytest.mark.e2e
 def test_full_real_user_journey() -> None:
     with sync_playwright() as playwright:
