@@ -192,6 +192,32 @@ export interface IncidentEvidence {
   change_count: number;
   correlation_window_minutes: number;
   findings: string[];
+  metric_findings: string[];
+}
+
+export type ChangeEventType = "deployment" | "config" | "feature_flag" | "maintenance" | "rollback" | "other";
+
+export interface ChangeEvent {
+  id: string;
+  host_id: string | null;
+  event_type: ChangeEventType;
+  title: string;
+  description: string | null;
+  source: string;
+  actor_user_id: string | null;
+  external_ref: string | null;
+  occurred_at: string;
+  created_at: string;
+}
+
+export interface ChangeEventCreate {
+  event_type: ChangeEventType;
+  title: string;
+  description?: string | null;
+  host_id?: string | null;
+  source: string;
+  external_ref?: string | null;
+  occurred_at?: string | null;
 }
 
 export interface AuditLog {
