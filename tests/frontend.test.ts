@@ -5,6 +5,7 @@ import { WebSocketMessage } from "../src/types/websocket.js";
 import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
 import { api } from "../src/services/api.js";
+import { getTelemetryFreshness } from "../src/utils/hostHealth.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -104,6 +105,44 @@ describe("Production operations API surface", () => {
     assert.equal(typeof api.revokeApiKey, "function");
     assert.equal(typeof api.getPlatformMetrics, "function");
     assert.equal(typeof api.getAuditLogs, "function");
+    assert.equal(typeof api.getIncidentEvidence, "function");
+  });
+});
+
+describe("Host telemetry freshness", () => {
+  const now = Date.parse("2026-09-22T10:00:00.000Z");
+
+  it("classifies a recent host as reporting", () => {
+    const result = getTelemetryFreshness("2026-09-22T09:59:31.000Z", true, now);
+    assert.equal(result.status, "online");
+    assert.equal(result.label, "Reporting");
+    assert.equal(result.ageSeconds, 29);
+  });
+
+  it("classifies a delayed host as stale", () => {
+    const result = getTelemetryFreshness("2026-09-22T09:58:00.000Z", true, now);
+    assert.equal(result.status, "stale");
+    assert.equal(result.ageSeconds, 120);
+  });
+
+  it("classifies a silent host with no recent sample", () => {
+    const result = getTelemetryFreshness("2026-09-22T09:55:00.000Z", true, now);
+    assert.equal(result.status, "silent");
+    assert.equal(result.label, "Silent");
+  });
+
+  it("distinguishes inactive hosts from silent hosts", () => {
+    const result = getTelemetryFreshness("2026-09-22T09:59:59.000Z", false, now);
+    assert.equal(result.status, "inactive");
+    assert.equal(result.label, "Inactive");
+    assert.equal(result.ageSeconds, null);
+  });
+
+  it("does not treat missing telemetry as healthy", () => {
+    const result = getTelemetryFreshness(null, true, now);
+    assert.equal(result.status, "silent");
+    assert.equal(result.label, "No telemetry");
+    assert.equal(result.ageSeconds, null);
   });
 });
 
