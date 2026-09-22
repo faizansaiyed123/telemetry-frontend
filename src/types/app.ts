@@ -10,6 +10,9 @@ export interface TelemetryEvent {
   requests_per_second: number;
   error_rate: number;
   latency_ms: number;
+  host_id?: string | null;
+  source?: "synthetic" | "agent" | "api";
+  agent_version?: string | null;
 }
 
 export interface MetricStat {
