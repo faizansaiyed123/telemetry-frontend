@@ -45,6 +45,10 @@ export interface Alert {
   resolved: boolean;
   resolved_at?: string | null;
   acknowledged?: boolean;
+  host_id?: string | null;
+  source?: "anomaly" | "rule";
+  rule_id?: string | null;
+  incident_id?: string | null;
 }
 
 export interface AlertsResponse {
@@ -120,6 +124,8 @@ export interface Host {
   name: string;
   environment: string;
   is_active: boolean;
+  last_seen_at?: string | null;
+  agent_version?: string | null;
 }
 
 export interface UserRecord {
@@ -217,4 +223,22 @@ export interface PlatformMetrics {
   counters: Record<string, number>;
   gauges: Record<string, number>;
   runtime: Record<string, number>;
+}
+
+export interface TelemetrySeriesPoint {
+  timestamp: string;
+  samples: number;
+  avg: number;
+  min: number;
+  max: number;
+  p95: number;
+}
+
+export interface TelemetrySeriesResponse {
+  host_id: string;
+  metric: AlertRule["metric"];
+  start: string;
+  end: string;
+  bucket_seconds: number;
+  points: TelemetrySeriesPoint[];
 }
