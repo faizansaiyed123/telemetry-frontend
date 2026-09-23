@@ -113,16 +113,9 @@ export class TelemetryWebSocketService {
           return;
         }
 
-        if (event.code === 1008) {
-          window.localStorage.removeItem("telemetry_access_token");
-          window.localStorage.removeItem("telemetry_user");
-          this.setStatus("DISCONNECTED");
-          if (window.location.pathname.startsWith("/app")) {
-            window.location.replace("/login");
-          }
-          return;
-        }
-
+        // A 1008 from this endpoint can mean a rejected/expired one-time
+        // WebSocket handoff token. Refreshing the handoff is safe; the
+        // authenticated API path remains responsible for session revocation.
         this.setStatus("DISCONNECTED");
         this.scheduleReconnect();
       };
