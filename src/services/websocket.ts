@@ -1,6 +1,5 @@
 import { ConnectionStatus, WebSocketMessage } from "../types/websocket.js";
-import { API_BASE_URL } from "./api.js";
-import { api } from "./api.js";
+import { API_BASE_URL, api } from "./api.js";
 
 type MessageHandler = (message: WebSocketMessage) => void;
 type StatusHandler = (status: ConnectionStatus) => void;
