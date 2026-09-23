@@ -48,6 +48,7 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
   const canCreate = user.role === "admin" || user.role === "operator";
   const [hosts, setHosts] = useState<Host[]>([]);
   const [hostFilter, setHostFilter] = useState<string>("all");
+  const [createHostId, setCreateHostId] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<ChangeEvent["event_type"] | "all">("all");
   const [events, setEvents] = useState<ChangeEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,7 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
         event_type: eventType,
         title: title.trim(),
         description: description.trim() || undefined,
-        host_id: hostFilter === "all" ? undefined : hostFilter,
+        host_id: createHostId || undefined,
         source: "manual",
         external_ref: externalRef.trim() || undefined,
         occurred_at: occurredAt ? new Date(occurredAt).toISOString() : undefined,
@@ -198,8 +199,8 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
             </select>
 
             <select
-              value={hostFilter === "all" ? "" : hostFilter}
-              onChange={(event) => setHostFilter(event.target.value || "all")}
+              value={createHostId}
+              onChange={(event) => setCreateHostId(event.target.value)}
               className="rounded-xl border border-white/8 bg-slate-950 px-4 py-3 text-sm text-white"
             >
               <option value="">System-wide</option>
