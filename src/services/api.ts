@@ -12,7 +12,7 @@ import {
   AlertsResponse,
   Host,
   UserRecord,
-  ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
+  ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus, ChangeEvent,
   TelemetrySeriesResponse,
   WebSocketTokenResponse,
 } from "../types/app.js";
@@ -266,6 +266,26 @@ export const api = {
   },
   getIncidentEvidence(id: string): Promise<IncidentEvidence> {
     return request<IncidentEvidence>("/api/incidents/" + encodeURIComponent(id) + "/evidence");
+  },
+
+  getChanges(hostId?: string): Promise<ChangeEvent[]> {
+    const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<ChangeEvent[]>("/api/changes" + params);
+  },
+
+  createChange(payload: {
+    event_type: ChangeEvent["event_type"];
+    title: string;
+    description?: string | null;
+    host_id?: string | null;
+    source?: string;
+    external_ref?: string | null;
+    occurred_at?: string | null;
+  }): Promise<ChangeEvent> {
+    return request<ChangeEvent>("/api/changes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
   acknowledgeIncident(id: string): Promise<Incident> {
     return request<Incident>("/api/incidents/" + encodeURIComponent(id) + "/acknowledge", { method: "POST" });
