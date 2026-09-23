@@ -36,6 +36,10 @@ def logout(page: Page) -> None:
     expect(page).to_have_url(f"{BASE_URL}/", timeout=10_000)
 
 
+def sequence_value(page: Page) -> str:
+    return page.get_by_text("Seq:", exact=True).locator("..").locator("span.font-mono").inner_text()
+
+
 @pytest.mark.e2e
 def test_full_real_user_journey() -> None:
     with sync_playwright() as playwright:
@@ -54,9 +58,9 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text(
                 "Know what your infrastructure is doing"
             )
-            expect(page.get_by_role("link", name="Open dashboard")).to_be_visible()
-            expect(page.get_by_role("link", name="Explore the dashboard")).to_be_visible()
-            page.get_by_role("link", name="Explore the dashboard").click()
+            expect(page.get_by_role("link", name="Sign in").first).to_be_visible()
+            expect(page.get_by_role("link", name="Create account").first).to_be_visible()
+            page.get_by_role("link", name="Sign in").first.click()
             expect(page).to_have_url(f"{BASE_URL}/login")
             snap(page, "01-home-to-login")
 
@@ -83,9 +87,9 @@ def test_full_real_user_journey() -> None:
                 "card-metric-errors",
             ):
                 expect(page.locator(f"#{card}")).to_be_visible()
-            seq1 = page.locator("text=/Seq:/").inner_text()
+            seq1 = sequence_value(page)
             page.wait_for_timeout(1500)
-            seq2 = page.locator("text=/Seq:/").inner_text()
+            seq2 = sequence_value(page)
             assert seq1 != seq2, "Live sequence did not advance"
             expect(page.get_by_text("Statistics", exact=False)).to_be_visible()
             expect(page.get_by_text("Historical", exact=False)).to_be_visible()
@@ -95,9 +99,9 @@ def test_full_real_user_journey() -> None:
             print("[QA] 4. Simulation controls")
             page.locator("#btn-play-pause").click()
             expect(page.locator("#btn-play-pause")).to_contain_text("Resume Stream", timeout=10_000)
-            paused_seq = page.locator("text=/Seq:/").inner_text()
+            paused_seq = sequence_value(page)
             page.wait_for_timeout(1200)
-            assert page.locator("text=/Seq:/").inner_text() == paused_seq
+            assert sequence_value(page) == paused_seq
             page.locator("#btn-play-pause").click()
             expect(page.locator("#btn-play-pause")).to_contain_text("Pause Stream", timeout=10_000)
 
