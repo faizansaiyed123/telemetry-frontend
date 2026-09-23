@@ -6,6 +6,7 @@ import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
 import { api } from "../src/services/api.js";
 import { getTelemetryFreshness } from "../src/utils/hostHealth.js";
+import { telemetryWsService } from "../src/services/websocket.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -202,5 +203,83 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
     assert.equal(alertList.length, 1);
     assert.equal(alertList[0].resolved, true);
     assert.ok(alertList[0].resolved_at);
+  });
+});
+
+
+describe("WebSocket security handoff", () => {
+  it("uses the short-lived handoff token instead of the long-lived access token", async () => {
+    const longLivedToken = "long-lived-access-token";
+    const shortLivedToken = "short-lived-ws-token";
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalWebSocket = (globalThis as { WebSocket?: unknown }).WebSocket;
+
+    const connections: Array<{ url: string; onopen?: () => void; onclose?: (event: { code: number }) => void }> = [];
+
+    class FakeWebSocket {
+      readyState = 0;
+      onopen?: () => void;
+      onclose?: (event: { code: number }) => void;
+      onmessage?: (event: { data: string }) => void;
+      onerror?: () => void;
+
+      constructor(public url: string) {
+        connections.push(this);
+        queueMicrotask(() => {
+          this.readyState = 1;
+          this.onopen?.();
+        });
+      }
+
+      close() {
+        this.readyState = 3;
+        this.onclose?.({ code: 1000 });
+      }
+    }
+
+    const localStorage = {
+      getItem: (key: string) => (key === "telemetry_access_token" ? longLivedToken : null),
+      setItem: () => undefined,
+      removeItem: () => undefined,
+    };
+
+    (globalThis as { window?: unknown }).window = {
+      localStorage,
+      location: { pathname: "/app", replace: () => undefined },
+    };
+
+    (globalThis as { WebSocket?: unknown }).WebSocket = FakeWebSocket;
+
+    const { api } = await import("../src/services/api.js");
+    const originalGetWebSocketToken = api.getWebSocketToken;
+    api.getWebSocketToken = async () => ({
+      access_token: shortLivedToken,
+      token_type: "bearer",
+      expires_in: 30,
+    });
+
+    try {
+      telemetryWsService.disconnect();
+      telemetryWsService.connect();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      assert.equal(connections.length, 1);
+      assert.equal(connections[0].url.includes(shortLivedToken), true);
+      assert.equal(connections[0].url.includes(longLivedToken), false);
+      assert.equal(telemetryWsService.getStatus(), "LIVE");
+    } finally {
+      telemetryWsService.disconnect();
+      api.getWebSocketToken = originalGetWebSocketToken;
+      if (originalWindow === undefined) {
+        delete (globalThis as { window?: unknown }).window;
+      } else {
+        (globalThis as { window?: unknown }).window = originalWindow;
+      }
+      if (originalWebSocket === undefined) {
+        delete (globalThis as { WebSocket?: unknown }).WebSocket;
+      } else {
+        (globalThis as { WebSocket?: unknown }).WebSocket = originalWebSocket;
+      }
+    }
   });
 });
