@@ -138,6 +138,10 @@ export const api = {
     return request<AuthUser>("/api/auth/me");
   },
 
+  getWebSocketToken(): Promise<{ access_token: string; token_type: string; expires_in: number }> {
+    return request<{ access_token: string; token_type: string; expires_in: number }>("/api/auth/ws-token");
+  },
+
   changePassword(payload: { current_password: string; new_password: string }): Promise<{ status: string }> {
     return request<{ status: string }>("/api/auth/change-password", {
       method: "POST",
