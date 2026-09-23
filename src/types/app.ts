@@ -270,3 +270,18 @@ export interface WebSocketTokenResponse {
   token_type: string;
   expires_in: number;
 }
+
+
+export interface ChangeEvent {
+  id: string;
+  host_id: string | null;
+  event_type: "deployment" | "config" | "feature_flag" | "maintenance" | "rollback" | "other";
+  title: string;
+  description: string | null;
+  source: string;
+  actor_user_id: string | null;
+  external_ref: string | null;
+  occurred_at: string;
+  created_at: string;
+}
+

@@ -14,6 +14,7 @@ import {
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
   TelemetrySeriesResponse,
+  ChangeEvent,
   WebSocketTokenResponse,
 } from "../types/app.js";
 
@@ -264,6 +265,25 @@ export const api = {
   getIncident(id: string): Promise<Incident> {
     return request<Incident>("/api/incidents/" + encodeURIComponent(id));
   },
+  getChangeEvents(hostId?: string): Promise<ChangeEvent[]> {
+    const params = hostId ? "?host_id=" + encodeURIComponent(hostId) : "";
+    return request<ChangeEvent[]>("/api/changes" + params);
+  },
+  createChangeEvent(payload: {
+    event_type: ChangeEvent["event_type"];
+    title: string;
+    description?: string;
+    host_id?: string;
+    source?: string;
+    external_ref?: string;
+    occurred_at?: string;
+  }): Promise<ChangeEvent> {
+    return request<ChangeEvent>("/api/changes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   getIncidentEvidence(id: string): Promise<IncidentEvidence> {
     return request<IncidentEvidence>("/api/incidents/" + encodeURIComponent(id) + "/evidence");
   },

@@ -54,6 +54,7 @@ The /app area provides:
 - Historical telemetry inspection with bounded server-side time-series buckets and p95
 - Backend-computed statistics
 - Correlated incident investigation and acknowledgement
+- Change-event timeline for deployments, configuration changes, rollbacks, feature flags, and maintenance
 - SLOs with live SLI and remaining error budget
 - Simulation start/pause/resume/reset
 - Stream-rate controls
@@ -75,6 +76,8 @@ The /app area provides:
 | View analytics | ✓ | ✓ | ✓ |
 | View hosts | ✓ | ✓ | ✓ |
 | Acknowledge alerts |  | ✓ | ✓ |
+| View change events | ✓ | ✓ | ✓ |
+| Record change events |  | ✓ | ✓ |
 | Simulation controls |  | ✓ | ✓ |
 | Create/update/delete hosts |  |  | ✓ |
 | Administration |  |  | ✓ |
@@ -156,6 +159,7 @@ telemetry-frontend/
 | /app/analytics | Historical and aggregate analytics | Required |
 | /app/hosts | Host inventory and agent heartbeat | Required |
 | /app/incidents | Correlated incidents and evidence windows | Required |
+| /app/changes | Deployment/configuration/maintenance change timeline | Required |
 | /app/slos | SLO and error-budget status | Required |
 | /app/operations | Runtime, alert rules, agent keys, audit log | Admin |
 | /app/admin | User administration | Admin |
@@ -294,6 +298,9 @@ POST /api/simulation/trigger
 GET  /api/incidents
 GET  /api/incidents/{incident_id}
 POST /api/incidents/{incident_id}/acknowledge
+
+GET  /api/changes
+POST /api/changes
 
 GET/POST/PATCH/DELETE /api/alert-rules...
 GET/POST/PATCH/DELETE /api/slos...

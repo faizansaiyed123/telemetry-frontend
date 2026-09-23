@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Activity, BarChart3, BellRing, Boxes, ChevronRight, Gauge, LogOut, Menu, Radio, Settings, ShieldAlert, ShieldCheck, Target, Users, X } from "lucide-react";
+import { Activity, BarChart3, BellRing, Boxes, ChevronRight, Gauge, GitBranch, LogOut, Menu, Radio, Settings, ShieldAlert, ShieldCheck, Target, Users, X } from "lucide-react";
 import type { AuthUser } from "../../types/app.js";
 import { clearSession } from "../../lib/session.js";
 
@@ -12,6 +12,7 @@ export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
     { href: "/app/alerts", label: "Alerts", icon: BellRing, roles: ["admin", "operator", "viewer"] },
     { href: "/app/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "operator", "viewer"] },
     { href: "/app/incidents", label: "Incidents", icon: ShieldAlert, roles: ["admin", "operator", "viewer"] },
+    { href: "/app/changes", label: "Changes", icon: GitBranch, roles: ["admin", "operator", "viewer"] },
     { href: "/app/slos", label: "SLOs", icon: Target, roles: ["admin", "operator", "viewer"] },
     { href: "/app/hosts", label: "Hosts", icon: Boxes, roles: ["admin", "operator", "viewer"] },
     { href: "/app/operations", label: "Operations", icon: Gauge, roles: ["admin"] },

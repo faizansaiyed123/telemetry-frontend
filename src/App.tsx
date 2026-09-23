@@ -13,6 +13,7 @@ import { Settings } from "./pages/Settings.js";
 import { Incidents } from "./pages/Incidents.js";
 import { SLOs } from "./pages/SLOs.js";
 import { Operations } from "./pages/Operations.js";
+import { Changes } from "./pages/Changes.js";
 import { api } from "./services/api.js";
 import { clearSession, getStoredToken, getStoredUser } from "./lib/session.js";
 import type { AuthUser } from "./types/app.js";
@@ -45,6 +46,7 @@ function ProtectedApp() {
   else if (path === "/app/alerts") content = <AlertsPage user={user} />;
   else if (path === "/app/analytics") content = <Analytics />;
   else if (path === "/app/incidents") content = <Incidents user={user} />;
+  else if (path === "/app/changes") content = <Changes user={user} />;
   else if (path === "/app/slos") content = <SLOs user={user} />;
   else if (path === "/app/hosts") content = <Hosts user={user} />;
   else if (path === "/app/operations" && user.role === "admin") content = <Operations />;
