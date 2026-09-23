@@ -314,6 +314,30 @@ export const Operations: React.FC = () => {
                   ))}
                 </div>
               </section>
+
+              <section className="rounded-2xl border border-white/7 bg-slate-900/50 p-5">
+                <div><div className="text-sm font-semibold text-white">Realtime fan-out</div><div className="mt-1 text-xs text-slate-600">Cross-worker WebSocket transport health</div></div>
+                <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                  {[
+                    ["Publisher", platform.gauges.event_bus_publisher_connected ?? 0],
+                    ["Listener", platform.gauges.event_bus_listener_connected ?? 0],
+                    ["Queue", platform.gauges.event_bus_queue_depth ?? 0],
+                  ].map(([label, value]) => {
+                    const connected = Number(value) > 0;
+                    const queue = label === "Queue";
+                    const disabled = !connected && Number(platform.runtime.event_bus_connected ?? 0) === 0 && Number(platform.runtime.event_bus_queue ?? 0) === 0;
+                    return (
+                      <div key={String(label)} className="rounded-xl border border-white/6 bg-white/[0.02] p-3">
+                        <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">{label}</div>
+                        <div className={"mt-2 text-sm font-semibold " + (queue ? "text-cyan-200" : disabled ? "text-slate-500" : connected ? "text-emerald-300" : "text-amber-300")}>
+                          {queue ? Number(value).toLocaleString() : disabled ? "Local only" : connected ? "Connected" : "Degraded"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-[10px] leading-4 text-slate-600">Distributed fan-out is optional and disabled by default. When enabled, worker health is visible here without exposing database credentials or deployment settings.</p>
+              </section>
             </div>
           </>
         ) : (
