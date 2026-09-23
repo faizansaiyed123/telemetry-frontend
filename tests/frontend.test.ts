@@ -106,6 +106,8 @@ describe("Production operations API surface", () => {
     assert.equal(typeof api.getPlatformMetrics, "function");
     assert.equal(typeof api.getAuditLogs, "function");
     assert.equal(typeof api.getIncidentEvidence, "function");
+    assert.equal(typeof api.getChangeEvents, "function");
+    assert.equal(typeof api.createChangeEvent, "function");
   });
 });
 
