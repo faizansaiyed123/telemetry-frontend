@@ -237,15 +237,20 @@ describe("WebSocket security handoff", () => {
       }
     }
 
+    const removedKeys: string[] = [];
+    const replacements: string[] = [];
     const localStorage = {
       getItem: (key: string) => (key === "telemetry_access_token" ? longLivedToken : null),
       setItem: () => undefined,
-      removeItem: () => undefined,
+      removeItem: (key: string) => { removedKeys.push(key); },
     };
 
     (globalThis as { window?: unknown }).window = {
       localStorage,
-      location: { pathname: "/app", replace: () => undefined },
+      location: {
+        pathname: "/app",
+        replace: (url: string) => { replacements.push(url); },
+      },
     };
 
     (globalThis as { WebSocket?: unknown }).WebSocket = FakeWebSocket;
@@ -267,6 +272,10 @@ describe("WebSocket security handoff", () => {
       assert.equal(connections[0].url.includes(shortLivedToken), true);
       assert.equal(connections[0].url.includes(longLivedToken), false);
       assert.equal(telemetryWsService.getStatus(), "LIVE");
+
+      connections[0].onclose?.({ code: 1008 });
+      assert.deepEqual(removedKeys, []);
+      assert.deepEqual(replacements, []);
     } finally {
       telemetryWsService.disconnect();
       api.getWebSocketToken = originalGetWebSocketToken;
