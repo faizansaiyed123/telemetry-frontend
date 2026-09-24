@@ -81,7 +81,7 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
               <span>{freshness.label}{freshness.ageSeconds !== null ? ` · agent sample ${freshness.ageSeconds}s ago` : ""}</span>
               {host?.agent_version && <span>Agent {host.agent_version}</span>}
-              {lastReceivedAt !== null && <span>UI received ${Math.max(0, Math.round((Date.now() - lastReceivedAt) / 1000))}s ago</span>}
+              {lastReceivedAt !== null && <span>UI received {Math.max(0, Math.round((Date.now() - lastReceivedAt) / 1000))}s ago</span>}
             </div>
           </div>
         </div>
@@ -111,6 +111,12 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
       {!host && (
         <div className="mt-4 rounded-xl border border-amber-500/15 bg-amber-500/[0.04] px-4 py-3 text-xs text-amber-200">
           No monitored host is selected. The dashboard will not label unscoped simulator data as live telemetry.
+        </div>
+      )}
+
+      {host?.agent_version && current?.source === "agent" && (
+        <div className="mt-4 rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3 text-xs leading-5 text-slate-500">
+          CPU, memory, network, and available temperature are measured on the host. Latency, error rate, and request rate are probe-derived when an HTTP probe is configured.
         </div>
       )}
 
