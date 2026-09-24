@@ -4,7 +4,7 @@ import { TelemetryEvent, TelemetryStats } from "../types/telemetry.js";
 
 const MAX_CHART_BUFFER = 120;
 
-export function useTelemetry() {
+export function useTelemetry(hostId?: string | null) {
   const [current, setCurrent] = useState<TelemetryEvent | null>(null);
   const [previous, setPrevious] = useState<TelemetryEvent | null>(null);
   const [streamBuffer, setStreamBuffer] = useState<TelemetryEvent[]>([]);
@@ -20,7 +20,6 @@ export function useTelemetry() {
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingEventsRef = useRef<TelemetryEvent[]>([]);
 
-  // Batch high-frequency incoming telemetry to maintain smooth 60fps UI even at 100Hz
   const flushPending = useCallback(() => {
     if (pendingEventsRef.current.length === 0) return;
 
@@ -32,28 +31,24 @@ export function useTelemetry() {
     currentRef.current = latest;
     setCurrent(latest);
 
-    setStreamBuffer((prev) => {
-      const merged = [...prev, ...incomingBatch];
-      return merged.slice(-MAX_CHART_BUFFER);
-    });
-
+    setStreamBuffer((prev) => [...prev, ...incomingBatch].slice(-MAX_CHART_BUFFER));
     setLastReceivedAt(Date.now());
   }, []);
 
   const handleIncomingTelemetry = useCallback(
     (event: TelemetryEvent) => {
-      // Check sequence integrity
+      if (hostId && event.host_id !== hostId) return;
+      if (!hostId && event.host_id) return;
+
       if (lastSeqRef.current !== null && event.sequence > lastSeqRef.current + 1) {
         setSequenceGapDetected(true);
       } else if (lastSeqRef.current !== null && event.sequence <= lastSeqRef.current) {
-        // Sequence reset detected
         setSequenceGapDetected(false);
       }
       lastSeqRef.current = event.sequence;
 
       pendingEventsRef.current.push(event);
 
-      // Debounce render flush to max 30-40fps (approx 25ms) so DOM & canvas don't choke at 100Hz
       if (!updateTimeoutRef.current) {
         updateTimeoutRef.current = setTimeout(() => {
           updateTimeoutRef.current = null;
@@ -61,40 +56,50 @@ export function useTelemetry() {
         }, 25);
       }
     },
-    [flushPending]
+    [flushPending, hostId],
   );
 
   const fetchStats = useCallback(async () => {
+    if (!hostId) {
+      setStats(null);
+      return;
+    }
     try {
       setStatsLoading(true);
-      const data = await api.getTelemetryStats();
+      const data = await api.getTelemetryStats(hostId);
       setStats(data);
     } catch {
-      // ignore
+      setStats(null);
     } finally {
       setStatsLoading(false);
     }
-  }, []);
+  }, [hostId]);
 
   const fetchHistory = useCallback(async (limit = 100) => {
+    if (!hostId) {
+      setHistoryEvents([]);
+      return [];
+    }
     try {
       setHistoryLoading(true);
-      const data = await api.getTelemetryHistory(limit);
+      const data = await api.getTelemetryHistory(limit, hostId);
       setHistoryEvents(data.events);
       return data.events;
     } catch (err) {
       console.error("Failed to load telemetry history:", err);
+      setHistoryEvents([]);
       return [];
     } finally {
       setHistoryLoading(false);
     }
-  }, []);
+  }, [hostId]);
 
   const clearStream = useCallback(() => {
     setCurrent(null);
     setPrevious(null);
     setStreamBuffer([]);
     setHistoryEvents([]);
+    setStats(null);
     setLastReceivedAt(null);
     currentRef.current = null;
     pendingEventsRef.current = [];
@@ -106,51 +111,48 @@ export function useTelemetry() {
     setSequenceGapDetected(false);
   }, []);
 
-  // Initial load
   useEffect(() => {
     let mounted = true;
+    clearStream();
+
+    if (!hostId) return () => { mounted = false; };
+
     async function init() {
-      try {
-        const [currRes, histRes, statsRes] = await Promise.allSettled([
-          api.getCurrentTelemetry(),
-          api.getTelemetryHistory(60),
-          api.getTelemetryStats(),
-        ]);
+      const [currRes, histRes, statsRes] = await Promise.allSettled([
+        api.getCurrentTelemetry(hostId),
+        api.getTelemetryHistory(60, hostId),
+        api.getTelemetryStats(hostId),
+      ]);
 
-        if (!mounted) return;
+      if (!mounted) return;
 
-        if (currRes.status === "fulfilled" && currRes.value.event) {
-          setCurrent(currRes.value.event);
-          currentRef.current = currRes.value.event;
-          lastSeqRef.current = currRes.value.event.sequence;
-          setLastReceivedAt(Date.now());
-        }
+      if (currRes.status === "fulfilled" && currRes.value.event) {
+        setCurrent(currRes.value.event);
+        currentRef.current = currRes.value.event;
+        lastSeqRef.current = currRes.value.event.sequence;
+        setLastReceivedAt(Date.now());
+      }
 
-        if (histRes.status === "fulfilled" && histRes.value.events.length > 0) {
-          setStreamBuffer(histRes.value.events.slice(-MAX_CHART_BUFFER));
-          setHistoryEvents(histRes.value.events);
-        }
+      if (histRes.status === "fulfilled" && histRes.value.events.length > 0) {
+        setStreamBuffer(histRes.value.events.slice(-MAX_CHART_BUFFER));
+        setHistoryEvents(histRes.value.events);
+      }
 
-        if (statsRes.status === "fulfilled") {
-          setStats(statsRes.value);
-        }
-      } catch {
-        // initial network fallback
+      if (statsRes.status === "fulfilled") {
+        setStats(statsRes.value);
       }
     }
-    init();
 
-    // Periodically sync stats every 5 seconds
-    const statsTimer = setInterval(fetchStats, 5000);
+    void init();
 
     return () => {
       mounted = false;
-      clearInterval(statsTimer);
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-        updateTimeoutRef.current = null;
-      }
     };
+  }, [clearStream, hostId]);
+
+  useEffect(() => {
+    const statsTimer = setInterval(() => void fetchStats(), 5000);
+    return () => clearInterval(statsTimer);
   }, [fetchStats]);
 
   return {
