@@ -6,6 +6,7 @@ import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
 import { api } from "../src/services/api.js";
 import { getTelemetryFreshness } from "../src/utils/hostHealth.js";
+import { selectPreferredTelemetryHost } from "../src/utils/telemetrySource.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -248,5 +249,63 @@ describe("WebSocket authentication handoff", () => {
       globalThis.fetch = originalFetch;
       globalThis.window = originalWindow;
     }
+  });
+});
+
+describe("Live telemetry host selection", () => {
+  const now = Date.parse("2026-09-24T09:00:00.000Z");
+
+  const host = (
+    id: string,
+    agent_version: string | null,
+    last_seen_at: string | null,
+    is_active = true,
+  ) => ({
+    id,
+    name: id,
+    environment: "production",
+    is_active,
+    agent_version,
+    last_seen_at,
+  });
+
+  it("prefers a currently reporting real agent over an active simulator", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("windows-dev", "telemetry-agent/1.0", "2026-09-24T08:59:40.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "windows-dev");
+  });
+
+  it("prefers a stale agent over a simulator when no agent is currently reporting", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("linux-dev", "telemetry-agent/1.0", "2026-09-24T08:55:00.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "linux-dev");
+  });
+
+  it("falls back to an active host when no agent has ever reported", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, null),
+        host("disabled", "telemetry-agent/1.0", null, false),
+      ],
+      now,
+    );
+    assert.equal(selected, "synthetic-local");
+  });
+
+  it("returns null when there are no active hosts", () => {
+    assert.equal(
+      selectPreferredTelemetryHost([host("disabled", "telemetry-agent/1.0", null, false)], now),
+      null,
+    );
   });
 });
