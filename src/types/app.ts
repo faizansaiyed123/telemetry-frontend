@@ -60,16 +60,22 @@ export interface AlertsResponse {
 export interface HealthResponse {
   status: string;
   uptime_seconds: number;
+  source_mode: "synthetic" | "agent" | "hybrid";
+  simulation_enabled: boolean;
   stream_active: boolean;
   connected_clients: number;
   events_generated: number;
+  events_ingested: number;
 }
 
 export interface SimulationStatus {
   running: boolean;
+  simulation_enabled: boolean;
+  source_mode: "synthetic" | "agent" | "hybrid";
   rate: number;
   sequence: number;
   events_generated: number;
+  events_ingested: number;
   active_anomaly: string | null;
   connected_clients: number;
   uptime_seconds: number;
