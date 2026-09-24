@@ -26,23 +26,7 @@ import { WebSocketMessage } from "../types/websocket.js";
 import { API_BASE_URL, api } from "../services/api.js";
 import type { Host } from "../types/app.js";
 import { LiveTelemetrySource } from "../components/telemetry/LiveTelemetrySource.js";
-import { getTelemetryFreshness } from "../utils/hostHealth.js";
-
-function preferredHostId(hosts: Host[]): string | null {
-  const reportingAgent = hosts
-    .filter((host) => host.is_active && Boolean(host.agent_version))
-    .sort((a, b) => Date.parse(b.last_seen_at ?? "") - Date.parse(a.last_seen_at ?? ""));
-
-  const freshAgent = reportingAgent.find((host) => {
-    const freshness = getTelemetryFreshness(host.last_seen_at, host.is_active);
-    return freshness.status === "online" || freshness.status === "stale";
-  });
-  if (freshAgent) return freshAgent.id;
-  if (reportingAgent[0]) return reportingAgent[0].id;
-
-  const activeHost = hosts.find((host) => host.is_active);
-  return activeHost?.id ?? null;
-}
+import { selectPreferredTelemetryHost } from "../utils/telemetrySource.js";
 
 export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> = ({ user }) => {
   const [hosts, setHosts] = useState<Host[]>([]);
@@ -54,7 +38,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
       setHosts(nextHosts);
       setSelectedHostId((current) => {
         if (current && nextHosts.some((host) => host.id === current)) return current;
-        return preferredHostId(nextHosts);
+        return selectPreferredTelemetryHost(nextHosts);
       });
     } catch {
       setHosts([]);
