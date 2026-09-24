@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   AlertOctagon,
@@ -23,10 +23,52 @@ import { SimulationControls } from "../components/simulation/SimulationControls.
 import { StatsOverview } from "../components/common/StatsOverview.js";
 import { HistoryViewer } from "../components/common/HistoryViewer.js";
 import { WebSocketMessage } from "../types/websocket.js";
-import { API_BASE_URL } from "../services/api.js";
+import { API_BASE_URL, api } from "../services/api.js";
+import type { Host } from "../types/app.js";
+import { LiveTelemetrySource } from "../components/telemetry/LiveTelemetrySource.js";
+import { getTelemetryFreshness } from "../utils/hostHealth.js";
+
+function preferredHostId(hosts: Host[]): string | null {
+  const reportingAgent = hosts
+    .filter((host) => host.is_active && Boolean(host.agent_version))
+    .sort((a, b) => Date.parse(b.last_seen_at ?? "") - Date.parse(a.last_seen_at ?? ""));
+
+  const freshAgent = reportingAgent.find((host) => {
+    const freshness = getTelemetryFreshness(host.last_seen_at, host.is_active);
+    return freshness.status === "online" || freshness.status === "stale";
+  });
+  if (freshAgent) return freshAgent.id;
+  if (reportingAgent[0]) return reportingAgent[0].id;
+
+  const activeHost = hosts.find((host) => host.is_active);
+  return activeHost?.id ?? null;
+}
 
 export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> = ({ user }) => {
-  const telemetry = useTelemetry();
+  const [hosts, setHosts] = useState<Host[]>([]);
+  const [selectedHostId, setSelectedHostId] = useState<string | null>(null);
+
+  const loadHosts = useCallback(async () => {
+    try {
+      const nextHosts = await api.getHosts();
+      setHosts(nextHosts);
+      setSelectedHostId((current) => {
+        if (current && nextHosts.some((host) => host.id === current)) return current;
+        return preferredHostId(nextHosts);
+      });
+    } catch {
+      setHosts([]);
+      setSelectedHostId(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadHosts();
+    const timer = setInterval(() => void loadHosts(), 5000);
+    return () => clearInterval(timer);
+  }, [loadHosts]);
+
+  const telemetry = useTelemetry(selectedHostId);
   const alerts = useAlerts();
   const { handleIncomingTelemetry, fetchStats, fetchHistory, clearStream } = telemetry;
   const { handleIncomingAlert, refresh: refreshAlerts, clearAlerts } = alerts;
@@ -44,6 +86,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
 
   const simulation = useSimulation(handleReset);
   const canControlSimulation = user.role === "admin" || user.role === "operator";
+  const simulationEnabled = simulation.status?.simulation_enabled ?? simulation.health?.simulation_enabled ?? false;
 
   // Incoming WebSocket dispatcher
   const handleWsMessage = useCallback(
@@ -111,6 +154,17 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
           </div>
         </div>
       )}
+
+      <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
+        <LiveTelemetrySource
+          hosts={hosts}
+          host={selectedHostId ? hosts.find((host) => host.id === selectedHostId) ?? null : null}
+          current={telemetry.current}
+          connectionStatus={connectionStatus}
+          lastReceivedAt={telemetry.lastReceivedAt}
+          onHostChange={setSelectedHostId}
+        />
+      </div>
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
@@ -245,16 +299,29 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
         </section>
 
         {/* Simulation Controls & Anomaly Injection */}
-        {canControlSimulation && <section aria-label="Simulation Controls">
-          <SimulationControls
-            status={simulation.status}
-            actionLoading={simulation.actionLoading}
-            onTogglePlayPause={simulation.togglePlayPause}
-            onSetRate={simulation.setRate}
-            onTriggerAnomaly={simulation.triggerAnomaly}
-            onReset={simulation.resetSimulation}
-          />
-        </section>}
+        {canControlSimulation && simulationEnabled && (
+          <section aria-label="Simulation Controls">
+            <SimulationControls
+              status={simulation.status}
+              actionLoading={simulation.actionLoading}
+              onTogglePlayPause={simulation.togglePlayPause}
+              onSetRate={simulation.setRate}
+              onTriggerAnomaly={simulation.triggerAnomaly}
+              onReset={simulation.resetSimulation}
+            />
+          </section>
+        )}
+        {canControlSimulation && simulation.status && !simulationEnabled && (
+          <section aria-label="Live agent mode">
+            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.04] p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Live collection mode</div>
+              <div className="mt-2 text-sm font-medium text-white">Synthetic simulation is disabled.</div>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">
+                This dashboard is configured to consume telemetry from real host agents. New samples enter through the authenticated ingestion API and are streamed to this UI after backend processing.
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* Statistical Overview & Historical Telemetry Log */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6" aria-label="Statistics and History">
