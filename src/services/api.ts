@@ -14,10 +14,10 @@ import {
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus,
   TelemetrySeriesResponse,
-  ChangeEvent,
+  ChangeEvent, Severity,
   WebSocketTokenResponse,
   NotificationChannel, NotificationDelivery, NotificationTestResponse,
-  SyntheticCheck, SyntheticCheckRunListResponse,
+  SyntheticCheck, SyntheticCheckRun, SyntheticCheckRunListResponse,
   Service, ServiceDependency, TopologyResponse,
 } from "../types/app.js";
 
