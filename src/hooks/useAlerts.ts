@@ -16,16 +16,18 @@ export function useAlerts(hostId?: string | null) {
       const res = await api.getAlerts(activeOnly);
       const filtered = hostId ? res.alerts.filter((alert) => alert.host_id === hostId) : res.alerts;
       setAlerts(filtered);
-      setActiveCount(res.active_count);
-      setTotalCount(res.total_count);
+      setActiveCount(filtered.filter((alert) => !alert.resolved).length);
+      setTotalCount(filtered.length);
     } catch (err: any) {
       setError(err?.message || "Failed to load alerts");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hostId]);
 
   const handleIncomingAlert = useCallback((incoming: Alert) => {
+    if (hostId && incoming.host_id !== hostId) return;
+    if (!hostId && incoming.host_id) return;
     setAlerts((prev) => {
       const idx = prev.findIndex((a) => a.id === incoming.id);
       let updated: Alert[];
@@ -44,7 +46,7 @@ export function useAlerts(hostId?: string | null) {
       setTotalCount(updated.length);
       return updated;
     });
-  }, []);
+  }, [hostId]);
 
   const clearAlerts = useCallback(() => {
     setAlerts([]);
@@ -54,7 +56,7 @@ export function useAlerts(hostId?: string | null) {
 
   useEffect(() => {
     fetchAlerts();
-  }, [fetchAlerts, hostId]);
+  }, [fetchAlerts]);
 
   return {
     alerts,
