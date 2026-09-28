@@ -164,7 +164,7 @@ def test_full_real_user_journey() -> None:
 
             row = page.get_by_text(f"{host_name}-updated", exact=True).locator("xpath=../../..")
             row.get_by_role("button", name="Deactivate").click()
-            expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
+            expect(row.get_by_text("Inactive", exact=True).first).to_be_visible(timeout=10_000)
             row.get_by_role("button", name="Activate").click()
             expect(row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
 
