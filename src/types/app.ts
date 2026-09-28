@@ -170,6 +170,7 @@ export interface AlertRule {
 export interface Incident {
   id: string;
   host_id: string | null;
+  service_id?: string | null;
   title: string;
   status: "open" | "acknowledged" | "resolved";
   severity: Severity;
