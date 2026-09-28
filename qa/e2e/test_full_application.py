@@ -265,7 +265,7 @@ def test_full_real_user_journey() -> None:
             admin_row = admin2.locator("div").filter(has_text=ADMIN_EMAIL).filter(
                 has=admin2.get_by_role("button", name="Deactivate", exact=True)
             ).first
-            admin_row.get_by_role("button", name="Deactivate").click()
+            admin_row.get_by_role("button", name="Deactivate", exact=True).click()
             expect(admin_row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
 
             page.goto(f"{BASE_URL}/app")
