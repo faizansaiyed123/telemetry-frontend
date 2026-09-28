@@ -196,7 +196,7 @@ export const SyntheticChecks: React.FC = () => {
           <input type="number" min="10" max="3600" value={draft.interval_seconds} onChange={(e) => draftUpdate({ interval_seconds: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" aria-label="Check interval seconds" />
           <input type="number" min="1" max="60" step="0.5" value={draft.timeout_seconds} onChange={(e) => draftUpdate({ timeout_seconds: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" aria-label="Check timeout seconds" />
           <input type="number" min="100" max="599" value={draft.expected_status} onChange={(e) => draftUpdate({ expected_status: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" aria-label="Expected HTTP status" />
-          <button onClick={() => void create()} disabled={busy === "create"} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-40">{busy === "create" ? "Creating…" : "Create check"}</button>
+          <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draft.enabled} onChange={(e) => draftUpdate({ enabled: e.target.checked })} />Enabled after creation</label><button onClick={() => void create()} disabled={busy === "create"} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-40">{busy === "create" ? "Creating…" : "Create check"}</button>
         </div>
       </section>
 
