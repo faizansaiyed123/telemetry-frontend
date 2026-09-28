@@ -53,6 +53,7 @@ jobs:
         with:
           repository: faizansaiyed123/telemetry-backend
           path: backend
+          ref: fix/short-alembic-revision
 
       - name: Generate ephemeral QA credentials
         shell: bash
