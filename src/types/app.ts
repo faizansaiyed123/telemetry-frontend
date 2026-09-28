@@ -46,6 +46,7 @@ export interface Alert {
   resolved_at?: string | null;
   acknowledged?: boolean;
   host_id?: string | null;
+  service_id?: string | null;
   source?: "anomaly" | "rule";
   rule_id?: string | null;
   incident_id?: string | null;
