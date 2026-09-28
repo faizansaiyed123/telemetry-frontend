@@ -203,7 +203,7 @@ def test_full_real_user_journey() -> None:
 
             viewer_row.get_by_role("button", name="Reset password").click()
             viewer_row.get_by_placeholder("New password, minimum 8 characters").fill("ViewerNew!12345")
-            viewer_row.get_by_role("button", name="Reset").click()
+            viewer_row.get_by_role("button", name="Reset", exact=True).click()
             expect(page.get_by_text("Password reset successfully.", exact=True)).to_be_visible(
                 timeout=10_000
             )
