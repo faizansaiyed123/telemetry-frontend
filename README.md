@@ -71,6 +71,11 @@ The /app area provides:
 - Service registry, dependency management, and topology
 - Full SLO and alert-rule editing
 - Distributed realtime fan-out health
+- Notification channels and durable delivery replay
+- Synthetic HTTP monitoring and run history
+- Service registry, dependency management, and topology
+- Full SLO and alert-rule editing
+- Distributed realtime fan-out health
 
 ## Role-aware UI
 
@@ -266,6 +271,7 @@ POST /api/auth/login
 POST /api/auth/signup
 GET  /api/auth/me
 POST /api/auth/change-password
+POST /api/auth/ws-token
 POST /api/auth/ws-token
 ```
 
@@ -532,3 +538,17 @@ The authenticated control center is intentionally organized around operational w
 Agent secrets are treated as one-time credentials: the UI only displays the returned secret immediately after creation and the listing API exposes only a prefix and lifecycle metadata. The browser never treats its cached role as an authorization boundary; the backend remains authoritative.
 
 The live dashboard also surfaces WebSocket sequence gaps and links operators to historical Analytics for backfill investigation.
+
+
+### Production integration surfaces
+
+The production frontend also exposes the backend observability control plane for:
+
+- signed webhook notification channels and durable delivery retry history
+- synthetic HTTP checks and run history
+- service registry, dependency edges, and topology
+- incident metric findings and downstream service impact
+- distributed realtime fan-out health
+- host-scoped live telemetry and alert context
+
+The browser E2E workflow starts the current frontend against the current backend repository state. A green frontend unit/build CI result does not by itself establish that the backend is deployment-ready; browser integration remains a separate verification gate.
