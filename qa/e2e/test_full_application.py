@@ -93,8 +93,8 @@ def test_full_real_user_journey() -> None:
             while time.monotonic() < deadline and sequence_value(page) == seq1:
                 page.wait_for_timeout(250)
             assert sequence_value(page) != seq1, "Live telemetry sample did not advance"
-            expect(page.get_by_text("Statistics", exact=False)).to_be_visible()
-            expect(page.get_by_text("Historical", exact=False)).to_be_visible()
+            expect(page.locator("#stats-overview")).to_be_visible()
+            expect(page.locator("#history-viewer")).to_be_visible()
             snap(page, "03-dashboard-live")
 
             # 4) Pause/resume, rate, and reset cancellation.
