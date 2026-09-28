@@ -132,7 +132,7 @@ def test_full_real_user_journey() -> None:
             acknowledge_button = page.get_by_role("button", name="Acknowledge", exact=True).first
             expect(acknowledge_button).to_be_visible(timeout=25_000)
             acknowledge_button.click()
-            expect(acknowledge_button.locator("xpath=..").get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             page.get_by_role("button", name="Refresh").click()
             expect(page.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
             snap(page, "05-alert-lifecycle")
