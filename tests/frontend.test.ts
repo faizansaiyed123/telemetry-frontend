@@ -309,3 +309,29 @@ describe("Live telemetry host selection", () => {
     );
   });
 });
+
+describe("Complete backend capability API surface", () => {
+  it("exposes notification, synthetic monitoring, service, dependency, and topology clients", () => {
+    assert.equal(typeof api.getNotificationChannels, "function");
+    assert.equal(typeof api.createNotificationChannel, "function");
+    assert.equal(typeof api.updateNotificationChannel, "function");
+    assert.equal(typeof api.deleteNotificationChannel, "function");
+    assert.equal(typeof api.testNotificationChannel, "function");
+    assert.equal(typeof api.getNotificationDeliveries, "function");
+    assert.equal(typeof api.retryNotificationDelivery, "function");
+    assert.equal(typeof api.getSyntheticChecks, "function");
+    assert.equal(typeof api.createSyntheticCheck, "function");
+    assert.equal(typeof api.updateSyntheticCheck, "function");
+    assert.equal(typeof api.deleteSyntheticCheck, "function");
+    assert.equal(typeof api.runSyntheticCheck, "function");
+    assert.equal(typeof api.getSyntheticCheckRuns, "function");
+    assert.equal(typeof api.getServices, "function");
+    assert.equal(typeof api.createService, "function");
+    assert.equal(typeof api.updateService, "function");
+    assert.equal(typeof api.deleteService, "function");
+    assert.equal(typeof api.getServiceDependencies, "function");
+    assert.equal(typeof api.addServiceDependency, "function");
+    assert.equal(typeof api.deleteServiceDependency, "function");
+    assert.equal(typeof api.getTopology, "function");
+  });
+});
