@@ -269,9 +269,9 @@ def test_full_real_user_journey() -> None:
             page.goto(f"{BASE_URL}/app")
             expect(page).to_have_url(f"{BASE_URL}/login", timeout=15_000)
 
-                admin_row.get_by_role("button", name="Activate", exact=True).click()
+            admin_row.get_by_role("button", name="Activate", exact=True).click()
             expect(admin_row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
-                login(page, ADMIN_EMAIL, ADMIN_PASSWORD)
+            login(page, ADMIN_EMAIL, ADMIN_PASSWORD)
             admin2.close()
             admin2_ctx.close()
 
