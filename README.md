@@ -71,11 +71,6 @@ The /app area provides:
 - Service registry, dependency management, and topology
 - Full SLO and alert-rule editing
 - Distributed realtime fan-out health
-- Notification channels and durable delivery replay
-- Synthetic HTTP monitoring and run history
-- Service registry, dependency management, and topology
-- Full SLO and alert-rule editing
-- Distributed realtime fan-out health
 
 ## Role-aware UI
 
@@ -171,6 +166,9 @@ telemetry-frontend/
 | /app/incidents | Correlated incidents and evidence windows | Required |
 | /app/changes | Deployment/configuration/maintenance change timeline | Required |
 | /app/slos | SLO and error-budget status | Required |
+| /app/notifications | Webhook channels and delivery history | Admin |
+| /app/synthetic-checks | Synthetic HTTP checks and run history | Required |
+| /app/services | Service registry, dependencies, and topology | Required |
 | /app/operations | Runtime, alert rules, agent keys, audit log | Admin |
 | /app/admin | User administration | Admin |
 | /app/settings | Account and password settings | Required |
@@ -272,7 +270,6 @@ POST /api/auth/signup
 GET  /api/auth/me
 POST /api/auth/change-password
 POST /api/auth/ws-token
-POST /api/auth/ws-token
 ```
 
 ### Telemetry
@@ -323,6 +320,23 @@ GET  /api/observability/metrics
 GET  /api/observability/audit-logs
 GET  /api/observability/metrics/prometheus
 POST /api/ingest/v1/telemetry
+```
+
+### Notifications, synthetic monitoring, and topology
+
+```
+GET/POST/PATCH/DELETE /api/notification-channels...
+POST /api/notification-channels/{channel_id}/test
+GET  /api/notification-channels/deliveries
+POST /api/notification-channels/deliveries/{delivery_id}/retry
+
+GET/POST/PATCH/DELETE /api/synthetic-checks...
+POST /api/synthetic-checks/{check_id}/run
+GET  /api/synthetic-checks/{check_id}/runs
+
+GET/POST/PATCH/DELETE /api/services...
+GET/POST/DELETE /api/services/{service_id}/dependencies...
+GET  /api/topology
 ```
 
 ### Hosts and users
@@ -511,6 +525,10 @@ The backend may have rejected the token or the user may have been deactivated. C
 Confirm that PostgreSQL is available, migrations have been applied, and backend telemetry persistence is enabled. The live stream can operate from runtime state even when persistent history is unavailable.
 
 ---
+
+## Browser end-to-end verification
+
+The repository also contains a Playwright browser journey that exercises public signup/login, live telemetry, simulation controls, alert acknowledgement, analytics, host administration, role-based access, cross-session deactivation, notifications, synthetic monitoring, service topology, password change, logout, and mobile navigation. The workflow intentionally runs against the backend repository rather than treating frontend build success as full-system verification.
 
 ## CI workflow
 
