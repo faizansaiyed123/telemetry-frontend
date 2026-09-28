@@ -57,6 +57,7 @@ def test_production_workspaces() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text("External checks")
             page.get_by_placeholder("API health check").fill(check_name)
             page.get_by_placeholder("https://example.com/health").fill("https://example.com/health")
+            page.get_by_label("Enabled after creation").uncheck()
             page.get_by_role("button", name="Create check").click()
             expect(page.get_by_text(check_name, exact=True)).to_be_visible(timeout=10_000)
 
@@ -74,6 +75,7 @@ def test_production_workspaces() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text("Notification channels")
             page.get_by_role("textbox").nth(0).fill(channel_name)
             page.get_by_role("textbox").nth(1).fill("https://example.com/webhook")
+            page.get_by_label("Enabled after creation").uncheck()
             page.get_by_role("button", name="alert.created", exact=True).click()
             page.get_by_role("button", name="incident.created", exact=True).click()
             page.get_by_role("button", name="incident.resolved", exact=True).click()
