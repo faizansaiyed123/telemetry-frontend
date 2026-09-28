@@ -91,8 +91,8 @@ def test_full_real_user_journey() -> None:
             expect(page.locator("#live-telemetry-sequence")).not_to_have_text(seq1, timeout=10_000)
             seq2 = sequence_value(page)
             assert seq1 != seq2, "Live telemetry sequence did not advance"
-            expect(page.get_by_text("Statistics", exact=False)).to_be_visible()
-            expect(page.get_by_text("Historical", exact=False)).to_be_visible()
+            expect(page.locator("#stats-overview")).to_be_visible()
+            expect(page.locator("#history-viewer")).to_be_visible()
             snap(page, "03-dashboard-live")
 
             # 4) Pause/resume, rate, and reset cancellation.
