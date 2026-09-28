@@ -4,6 +4,8 @@ import type {AlertRule,ApiKey,ApiKeyCreated,AuditLog,Host,PlatformMetrics} from 
 import {api} from "../services/api.js";
 const metrics:Array<{key:AlertRule["metric"];label:string;defaultThreshold:string}>=[{key:"cpu",label:"CPU",defaultThreshold:"90"},{key:"memory",label:"Memory",defaultThreshold:"90"},{key:"temperature",label:"Temperature",defaultThreshold:"80"},{key:"network_mbps",label:"Network",defaultThreshold:"900"},{key:"requests_per_second",label:"Requests / sec",defaultThreshold:"100"},{key:"error_rate",label:"Error rate",defaultThreshold:"5"},{key:"latency_ms",label:"Latency",defaultThreshold:"200"}];
 const ops:Array<AlertRule["operator"]>=[">",">=","<","<="],sevs:AlertRule["severity"][]=["INFO","WARNING","CRITICAL"];
+function formatUptime(seconds:number){const value=Math.max(0,Math.round(seconds));const h=Math.floor(value/3600),m=Math.floor((value%3600)/60),s=value%60;if(h)return String(h)+"h "+String(m)+"m";if(m)return String(m)+"m "+String(s)+"s";return String(s)+"s";}
+function compactNumber(value:number){return Intl.NumberFormat(undefined,{notation:"compact",maximumFractionDigits:1}).format(value);}
 export const Operations:React.FC=()=>{
  const [tab,setTab]=useState<"runtime"|"rules"|"agents"|"audit">("runtime"); const [platform,setPlatform]=useState<PlatformMetrics|null>(null),[rules,setRules]=useState<AlertRule[]>([]),[hosts,setHosts]=useState<Host[]>([]),[keys,setKeys]=useState<ApiKey[]>([]),[audits,setAudits]=useState<AuditLog[]>([]);
  const [selectedHost,setSelectedHost]=useState(""),[secret,setSecret]=useState<ApiKeyCreated|null>(null),[busy,setBusy]=useState<string|null>(null),[error,setError]=useState<string|null>(null),[notice,setNotice]=useState<string|null>(null),[editing,setEditing]=useState<AlertRule|null>(null);
