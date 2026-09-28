@@ -190,9 +190,9 @@ def test_full_real_user_journey() -> None:
                 expect(page.get_by_text(email, exact=True)).to_be_visible(timeout=10_000)
 
             viewer_row = page.get_by_text(accounts["viewer"][0], exact=True).locator("xpath=../../..")
-            viewer_row.get_by_role("button", name="Role").click()
+            viewer_row.get_by_role("button", name="Role", exact=True).click()
             viewer_row.get_by_role("combobox").last.select_option("operator")
-            viewer_row.get_by_role("button", name="Save").click()
+            viewer_row.get_by_role("button", name="Save", exact=True).click()
             expect(viewer_row.get_by_text("operator", exact=True)).to_be_visible(timeout=10_000)
             viewer_row.get_by_role("button", name="Role").click()
             viewer_row.get_by_role("combobox").last.select_option("viewer")
