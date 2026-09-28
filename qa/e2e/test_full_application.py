@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,7 @@ from playwright.sync_api import Browser, Page, expect, sync_playwright
 BASE_URL = os.getenv("QA_BASE_URL", "http://127.0.0.1:5173")
 API_URL = os.getenv("QA_API_URL", "http://127.0.0.1:8000")
 ADMIN_EMAIL = os.getenv("QA_ADMIN_EMAIL", "qa-admin@example.com")
-ADMIN_PASSWORD = os.getenv("QA_ADMIN_PASSWORD", "QaAdmin!12345")
+ADMIN_PASSWORD = os.environ["QA_ADMIN_PASSWORD"]
 ARTIFACT_DIR = Path(os.getenv("QA_ARTIFACT_DIR", "qa-artifacts"))
 ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -36,6 +37,10 @@ def logout(page: Page) -> None:
     expect(page).to_have_url(f"{BASE_URL}/", timeout=10_000)
 
 
+def sequence_value(page: Page) -> str:
+    return page.get_by_test_id("live-telemetry-sequence").inner_text().removeprefix("Sample #")
+
+
 @pytest.mark.e2e
 def test_full_real_user_journey() -> None:
     with sync_playwright() as playwright:
@@ -54,9 +59,9 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text(
                 "Know what your infrastructure is doing"
             )
-            expect(page.get_by_role("link", name="Open dashboard")).to_be_visible()
-            expect(page.get_by_role("link", name="Explore the dashboard")).to_be_visible()
-            page.get_by_role("link", name="Explore the dashboard").click()
+            expect(page.get_by_role("link", name="Sign in").first).to_be_visible()
+            expect(page.get_by_role("link", name="Create account").first).to_be_visible()
+            page.get_by_role("link", name="Sign in").first.click()
             expect(page).to_have_url(f"{BASE_URL}/login")
             snap(page, "01-home-to-login")
 
@@ -83,21 +88,22 @@ def test_full_real_user_journey() -> None:
                 "card-metric-errors",
             ):
                 expect(page.locator(f"#{card}")).to_be_visible()
-            seq1 = page.locator("text=/Seq:/").inner_text()
-            page.wait_for_timeout(1500)
-            seq2 = page.locator("text=/Seq:/").inner_text()
-            assert seq1 != seq2, "Live sequence did not advance"
-            expect(page.get_by_text("Statistics", exact=False)).to_be_visible()
-            expect(page.get_by_text("Historical", exact=False)).to_be_visible()
+            seq1 = sequence_value(page)
+            deadline = time.monotonic() + 8.0
+            while time.monotonic() < deadline and sequence_value(page) == seq1:
+                page.wait_for_timeout(250)
+            assert sequence_value(page) != seq1, "Live telemetry sample did not advance"
+            expect(page.locator("#stats-overview")).to_be_visible()
+            expect(page.locator("#history-viewer")).to_be_visible()
             snap(page, "03-dashboard-live")
 
             # 4) Pause/resume, rate, and reset cancellation.
             print("[QA] 4. Simulation controls")
             page.locator("#btn-play-pause").click()
             expect(page.locator("#btn-play-pause")).to_contain_text("Resume Stream", timeout=10_000)
-            paused_seq = page.locator("text=/Seq:/").inner_text()
+            paused_seq = sequence_value(page)
             page.wait_for_timeout(1200)
-            assert page.locator("text=/Seq:/").inner_text() == paused_seq
+            assert sequence_value(page) == paused_seq
             page.locator("#btn-play-pause").click()
             expect(page.locator("#btn-play-pause")).to_contain_text("Pause Stream", timeout=10_000)
 
@@ -128,19 +134,18 @@ def test_full_real_user_journey() -> None:
             expect(
                 page.locator("div").filter(has_text="Acknowledge").first
             ).to_be_visible(timeout=25_000)
-            alert_row = page.locator("div").filter(has_text="Acknowledge").first
-            alert_row.get_by_role("button", name="Acknowledge").click()
-            expect(alert_row.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
+            page.get_by_role("button", name="Acknowledge").first.click()
+            expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             page.get_by_role("button", name="Refresh").click()
-            expect(page.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             snap(page, "05-alert-lifecycle")
 
             # 6) Analytics.
             print("[QA] 6. Analytics")
             page.get_by_role("link", name="Analytics", exact=True).click()
             expect(page).to_have_url(f"{BASE_URL}/app/analytics")
-            expect(page.get_by_role("heading", level=1)).to_contain_text("Analytics")
-            expect(page.get_by_text("Metrics tracked", exact=True)).to_be_visible()
+            expect(page.get_by_role("heading", level=1)).to_contain_text("Queryable system history")
+            expect(page.get_by_text("Stored samples", exact=True)).to_be_visible()
             snap(page, "06-analytics")
 
             # 7) Hosts CRUD and persistence-sensitive operations.
@@ -156,22 +161,22 @@ def test_full_real_user_journey() -> None:
             row = page.locator("div").filter(has_text=host_name).filter(
                 has=page.get_by_role("button", name="Edit")
             ).first
-            row.get_by_role("button", name="Edit").click()
+            row.get_by_role("button", name="Edit").first.click()
             page.get_by_label("Host name").fill(f"{host_name}-updated")
             page.get_by_label("Host environment").fill("qa")
-            row.get_by_role("button", name="Save").click()
+            row.get_by_role("button", name="Save").first.click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_be_visible(timeout=10_000)
 
             row = page.locator("div").filter(has_text=f"{host_name}-updated").filter(
                 has=page.get_by_role("button", name="Deactivate")
             ).first
-            row.get_by_role("button", name="Deactivate").click()
+            row.get_by_role("button", name="Deactivate").first.click()
             expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
-            row.get_by_role("button", name="Activate").click()
+            row.get_by_role("button", name="Activate").first.click()
             expect(row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
 
             page.once("dialog", lambda dialog: dialog.accept())
-            row.get_by_role("button", name="Delete").click()
+            row.get_by_role("button", name="Delete").first.click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_have_count(0, timeout=10_000)
             snap(page, "07-hosts")
 

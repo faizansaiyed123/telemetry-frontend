@@ -6,6 +6,7 @@ import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
 import { api } from "../src/services/api.js";
 import { getTelemetryFreshness } from "../src/utils/hostHealth.js";
+import { selectPreferredTelemetryHost } from "../src/utils/telemetrySource.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -248,5 +249,89 @@ describe("WebSocket authentication handoff", () => {
       globalThis.fetch = originalFetch;
       globalThis.window = originalWindow;
     }
+  });
+});
+
+describe("Live telemetry host selection", () => {
+  const now = Date.parse("2026-09-24T09:00:00.000Z");
+
+  const host = (
+    id: string,
+    agent_version: string | null,
+    last_seen_at: string | null,
+    is_active = true,
+  ) => ({
+    id,
+    name: id,
+    environment: "production",
+    is_active,
+    agent_version,
+    last_seen_at,
+  });
+
+  it("prefers a currently reporting real agent over an active simulator", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("windows-dev", "telemetry-agent/1.0", "2026-09-24T08:59:40.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "windows-dev");
+  });
+
+  it("prefers a stale agent over a simulator when no agent is currently reporting", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("linux-dev", "telemetry-agent/1.0", "2026-09-24T08:55:00.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "linux-dev");
+  });
+
+  it("falls back to an active host when no agent has ever reported", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, null),
+        host("disabled", "telemetry-agent/1.0", null, false),
+      ],
+      now,
+    );
+    assert.equal(selected, "synthetic-local");
+  });
+
+  it("returns null when there are no active hosts", () => {
+    assert.equal(
+      selectPreferredTelemetryHost([host("disabled", "telemetry-agent/1.0", null, false)], now),
+      null,
+    );
+  });
+});
+
+describe("Complete backend capability API surface", () => {
+  it("exposes notification, synthetic monitoring, service, dependency, and topology clients", () => {
+    assert.equal(typeof api.getNotificationChannels, "function");
+    assert.equal(typeof api.createNotificationChannel, "function");
+    assert.equal(typeof api.updateNotificationChannel, "function");
+    assert.equal(typeof api.deleteNotificationChannel, "function");
+    assert.equal(typeof api.testNotificationChannel, "function");
+    assert.equal(typeof api.getNotificationDeliveries, "function");
+    assert.equal(typeof api.retryNotificationDelivery, "function");
+    assert.equal(typeof api.getSyntheticChecks, "function");
+    assert.equal(typeof api.createSyntheticCheck, "function");
+    assert.equal(typeof api.updateSyntheticCheck, "function");
+    assert.equal(typeof api.deleteSyntheticCheck, "function");
+    assert.equal(typeof api.runSyntheticCheck, "function");
+    assert.equal(typeof api.getSyntheticCheckRuns, "function");
+    assert.equal(typeof api.getServices, "function");
+    assert.equal(typeof api.createService, "function");
+    assert.equal(typeof api.updateService, "function");
+    assert.equal(typeof api.deleteService, "function");
+    assert.equal(typeof api.getServiceDependencies, "function");
+    assert.equal(typeof api.addServiceDependency, "function");
+    assert.equal(typeof api.deleteServiceDependency, "function");
+    assert.equal(typeof api.getTopology, "function");
   });
 });

@@ -51,6 +51,13 @@ export const Analytics: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
+    if (hosts.length === 0) {
+      setLoading(false);
+      setStats(null);
+      setHistory([]);
+      setPoints([]);
+      return () => { mounted = false; };
+    }
     const end = new Date();
     const start = new Date(end.getTime() - selectedWindow.milliseconds);
     setRefreshing(true);
@@ -144,7 +151,7 @@ export const Analytics: React.FC = () => {
 
       {error && <div role="alert" className="rounded-xl border border-rose-500/15 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">{error}</div>}
 
-      {loading && !stats ? <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-8 text-sm text-slate-500">Loading analytics…</div> :
+      {hosts.length === 0 ? <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-10 text-center"><Database className="mx-auto h-7 w-7 text-slate-700" /><div className="mt-3 text-sm font-medium text-white">No monitored hosts yet</div><p className="mt-2 text-xs leading-5 text-slate-600">Create a host and send at least one telemetry sample before exploring persisted analytics.</p><a href="/app/hosts" className="mt-4 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950">Open Hosts</a></div> : loading && !stats ? <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-8 text-sm text-slate-500">Loading analytics…</div> :
         stats && <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-5"><div className="flex items-center gap-2 text-xs text-slate-500"><Database className="h-4 w-4" />Stored samples</div><div className="mt-3 text-3xl font-semibold text-white">{stats.count.toLocaleString()}</div></div>

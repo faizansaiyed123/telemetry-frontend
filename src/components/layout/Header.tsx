@@ -85,6 +85,14 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const staleSec = getStaleSeconds();
+  const sourceMode = simulationStatus?.source_mode ?? health?.source_mode ?? "synthetic";
+  const simulationEnabled = simulationStatus?.simulation_enabled ?? health?.simulation_enabled ?? true;
+  const sourceLabel = sourceMode === "agent" ? "LIVE AGENT" : sourceMode === "hybrid" ? "HYBRID" : "SIMULATOR";
+  const sourceTone = sourceMode === "agent"
+    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+    : sourceMode === "hybrid"
+      ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
+      : "bg-amber-500/10 border-amber-500/20 text-amber-300";
 
   return (
     <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 py-3.5 transition-all">
@@ -111,29 +119,37 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Live system pills */}
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          {/* Rate indicator */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
-            <Radio className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-slate-400">Rate:</span>
-            <span className="font-semibold text-slate-200">
-              {simulationStatus?.rate ?? (health?.stream_active ? 10 : 0)} events/s
-            </span>
+          {/* Data source */}
+          <div className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs " + sourceTone}>
+            <Radio className="w-3.5 h-3.5" />
+            <span className="font-semibold">{sourceLabel}</span>
           </div>
+
+          {/* Rate indicator */}
+          {simulationEnabled && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
+              <Radio className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-slate-400">Rate:</span>
+              <span className="font-semibold text-slate-200">
+                {simulationStatus?.rate ?? (health?.stream_active ? 10 : 0)} events/s
+              </span>
+            </div>
+          )}
 
           {/* Engine State */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
             <Zap
               className={`w-3.5 h-3.5 ${
-                simulationStatus?.running ? "text-emerald-400" : "text-amber-400"
+                sourceMode === "agent" ? "text-emerald-400" : simulationStatus?.running ? "text-emerald-400" : "text-amber-400"
               }`}
             />
             <span className="text-slate-400">Engine:</span>
             <span
               className={`font-semibold ${
-                simulationStatus?.running ? "text-emerald-300" : "text-amber-300"
+                sourceMode === "agent" ? "text-emerald-300" : simulationStatus?.running ? "text-emerald-300" : "text-amber-300"
               }`}
             >
-              {simulationStatus?.running ? "RUNNING" : "PAUSED"}
+              {sourceMode === "agent" ? "INGESTING" : simulationStatus?.running ? "RUNNING" : "PAUSED"}
             </span>
           </div>
 
@@ -163,8 +179,17 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
+          {/* Ingestion counter */}
+          {sourceMode === "agent" && (
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
+              <Server className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Ingested:</span>
+              <span className="font-mono text-slate-200">{simulationStatus?.events_ingested ?? health?.events_ingested ?? 0}</span>
+            </div>
+          )}
+
           {/* Sequence info */}
-          {simulationStatus?.sequence !== undefined && (
+          {simulationStatus?.sequence !== undefined && simulationEnabled && (
             <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
               <Server className="w-3.5 h-3.5 text-slate-400" />
               <span>Seq:</span>
