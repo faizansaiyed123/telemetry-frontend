@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Activity, BarChart3, BellRing, Boxes, ChevronRight, Gauge, GitBranch, LogOut, Menu, Radio, Settings, ShieldAlert, ShieldCheck, Target, Users, X } from "lucide-react";
+import { Activity, BarChart3, BellRing, Boxes, ChevronRight, Gauge, GitBranch, Globe, LogOut, Menu, Network, Radio, Settings, ShieldAlert, ShieldCheck, Target, Users, Webhook, X } from "lucide-react";
 import type { AuthUser } from "../../types/app.js";
 import { clearSession } from "../../lib/session.js";
 
@@ -15,6 +15,9 @@ export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
     { href: "/app/changes", label: "Changes", icon: GitBranch, roles: ["admin", "operator", "viewer"] },
     { href: "/app/slos", label: "SLOs", icon: Target, roles: ["admin", "operator", "viewer"] },
     { href: "/app/hosts", label: "Hosts", icon: Boxes, roles: ["admin", "operator", "viewer"] },
+    { href: "/app/services", label: "Services", icon: Network, roles: ["admin", "operator", "viewer"] },
+    { href: "/app/synthetic", label: "Synthetic", icon: Globe, roles: ["admin", "operator", "viewer"] },
+    { href: "/app/notifications", label: "Notifications", icon: Webhook, roles: ["admin"] },
     { href: "/app/operations", label: "Operations", icon: Gauge, roles: ["admin"] },
     { href: "/app/admin", label: "Administration", icon: Users, roles: ["admin"] },
   ], []);
