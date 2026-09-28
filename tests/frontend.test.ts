@@ -109,6 +109,15 @@ describe("Production operations API surface", () => {
     assert.equal(typeof api.getIncidentEvidence, "function");
     assert.equal(typeof api.getChangeEvents, "function");
     assert.equal(typeof api.createChangeEvent, "function");
+    assert.equal(typeof api.getNotificationChannels, "function");
+    assert.equal(typeof api.testNotificationChannel, "function");
+    assert.equal(typeof api.getNotificationDeliveries, "function");
+    assert.equal(typeof api.retryNotificationDelivery, "function");
+    assert.equal(typeof api.getSyntheticChecks, "function");
+    assert.equal(typeof api.runSyntheticCheck, "function");
+    assert.equal(typeof api.getServices, "function");
+    assert.equal(typeof api.addServiceDependency, "function");
+    assert.equal(typeof api.getTopology, "function");
   });
 });
 
@@ -252,7 +261,27 @@ describe("WebSocket authentication handoff", () => {
   });
 });
 
-describe("Live telemetry host selection", () => {
+describe("Live telemetry host selection", () => {describe("Current telemetry host scoping", () => {
+  it("adds host_id to current telemetry requests", async () => {
+    const originalWindow = globalThis.window;
+    const originalFetch = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.window = { localStorage: { getItem: () => "token", removeItem: () => undefined }, location: { pathname: "/app", replace: () => undefined } } as unknown as Window & typeof globalThis;
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      calls.push(String(input));
+      return new Response(JSON.stringify({ event: null, available: false }), { status: 200, headers: { "Content-Type": "application/json" } });
+    };
+    try {
+      await api.getCurrentTelemetry("host-123");
+      assert.match(calls[0], /\/api\/telemetry\/current\?host_id=host-123$/);
+    } finally {
+      globalThis.fetch = originalFetch;
+      globalThis.window = originalWindow;
+    }
+  });
+});
+
+
   const now = Date.parse("2026-09-24T09:00:00.000Z");
 
   const host = (

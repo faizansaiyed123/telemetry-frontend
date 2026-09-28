@@ -28,6 +28,8 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Partial<SLO> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -124,6 +126,34 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
   }
 
   async function remove(slo: SLO) {
+  function beginEdit(slo: SLO) {
+    setEditingId(slo.id);
+    setEditDraft({ name: slo.name, host_id: slo.host_id, metric: slo.metric, operator: slo.operator, threshold: slo.threshold, objective_percent: slo.objective_percent, window_hours: slo.window_hours, enabled: slo.enabled });
+    setError(null); setNotice(null);
+  }
+
+  async function saveEdit(slo: SLO) {
+    if (!editDraft) return;
+    try {
+      const updated = await api.updateSlo(slo.id, {
+        name: String(editDraft.name ?? slo.name).trim(),
+        host_id: String(editDraft.host_id ?? slo.host_id),
+        metric: editDraft.metric as AlertRule["metric"],
+        operator: editDraft.operator as AlertRule["operator"],
+        threshold: Number(editDraft.threshold),
+        objective_percent: Number(editDraft.objective_percent),
+        window_hours: Number(editDraft.window_hours),
+        enabled: Boolean(editDraft.enabled),
+      });
+      setSlos((rows) => rows.map((item) => item.id === slo.id ? updated : item));
+      setEditingId(null); setEditDraft(null);
+      const updatedStatus = await api.getSloStatus(slo.id);
+      setStatuses((current) => ({ ...current, [slo.id]: updatedStatus }));
+      setNotice("SLO updated."); setError(null);
+    } catch (err) { setError(err instanceof Error ? err.message : "Unable to update SLO."); }
+  }
+
+
     if (!window.confirm("Delete SLO \"" + slo.name + "\"?")) return;
     setDeleting(slo.id);
     setError(null);
@@ -234,6 +264,21 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
                   <div className={"rounded-full border px-2.5 py-1 text-[10px] " + (slo.enabled ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border-white/8 text-slate-500")}>{slo.enabled ? "Enabled" : "Paused"}</div>
                 </div>
 
+                {editingId === slo.id && editDraft && (
+                  <div className="mt-5 rounded-xl border border-cyan-300/10 bg-black/10 p-4">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <input value={String(editDraft.name ?? slo.name)} onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                      <select value={String(editDraft.host_id ?? slo.host_id)} onChange={(e) => setEditDraft({ ...editDraft, host_id: e.target.value })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{hosts.map((host) => <option key={host.id} value={host.id}>{host.name}</option>)}</select>
+                      <select value={String(editDraft.metric ?? slo.metric)} onChange={(e) => setEditDraft({ ...editDraft, metric: e.target.value as AlertRule["metric"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{metrics.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
+                      <div className="grid grid-cols-[0.6fr_1fr] gap-2"><select value={String(editDraft.operator ?? slo.operator)} onChange={(e) => setEditDraft({ ...editDraft, operator: e.target.value as AlertRule["operator"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{operators.map((item) => <option key={item} value={item}>{item}</option>)}</select><input type="number" step="0.01" value={String(editDraft.threshold ?? slo.threshold)} onChange={(e) => setEditDraft({ ...editDraft, threshold: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" /></div>
+                      <input type="number" min="0.01" max="100" step="0.01" value={String(editDraft.objective_percent ?? slo.objective_percent)} onChange={(e) => setEditDraft({ ...editDraft, objective_percent: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                      <input type="number" min="1" max="720" value={String(editDraft.window_hours ?? slo.window_hours)} onChange={(e) => setEditDraft({ ...editDraft, window_hours: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                      <label className="flex items-center gap-2 rounded-xl border border-white/8 px-3 py-2.5 text-sm text-slate-400"><input type="checkbox" checked={Boolean(editDraft.enabled ?? slo.enabled)} onChange={(e) => setEditDraft({ ...editDraft, enabled: e.target.checked })} />Enabled</label>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2"><button onClick={() => void saveEdit(slo)} className="rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950">Save changes</button><button onClick={() => { setEditingId(null); setEditDraft(null); }} className="rounded-xl border border-white/8 px-4 py-2.5 text-xs text-slate-400">Cancel</button></div>
+                  </div>
+                )}
+
                 {status ? (
                   <>
                     <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -265,6 +310,7 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
                       </div>
                       {user.role === "admin" && (
                         <div className="flex gap-2">
+                          <button onClick={() => beginEdit(slo)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400">Edit</button>
                           <button onClick={() => void toggle(slo)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400">{slo.enabled ? "Pause" : "Enable"}</button>
                           <button disabled={deleting === slo.id} onClick={() => void remove(slo)} aria-label={"Delete " + slo.name} className="rounded-xl border border-rose-500/15 px-3 py-2 text-xs text-rose-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" /></button>
                         </div>

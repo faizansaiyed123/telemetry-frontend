@@ -88,6 +88,7 @@ export const Analytics: React.FC = () => {
   const selectedMetric = metrics.find((item) => item.key === metric) ?? metrics[5];
 
   async function refresh() {
+    if (!hostId) return;
     const end = new Date();
     const start = new Date(end.getTime() - selectedWindow.milliseconds);
     setRefreshing(true);
@@ -145,6 +146,14 @@ export const Analytics: React.FC = () => {
       {error && <div role="alert" className="rounded-xl border border-rose-500/15 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">{error}</div>}
 
       {loading && !stats ? <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-8 text-sm text-slate-500">Loading analytics…</div> :
+        !loading && hosts.length === 0 ? (
+          <div className="rounded-2xl border border-amber-500/15 bg-amber-500/[0.04] p-10 text-center">
+            <Database className="mx-auto h-7 w-7 text-amber-300" />
+            <div className="mt-3 text-sm font-medium text-white">No monitored hosts yet</div>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500">Analytics is scoped to a monitored host. Create a host and start collecting telemetry before querying historical series.</p>
+            <a href="/app/hosts" className="mt-5 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950">Open hosts</a>
+          </div>
+        ) :
         stats && <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-5"><div className="flex items-center gap-2 text-xs text-slate-500"><Database className="h-4 w-4" />Stored samples</div><div className="mt-3 text-3xl font-semibold text-white">{stats.count.toLocaleString()}</div></div>

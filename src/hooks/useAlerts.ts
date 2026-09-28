@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { Alert } from "../types/alerts.js";
 
-export function useAlerts() {
+export function useAlerts(hostId?: string | null) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [activeCount, setActiveCount] = useState<number>(0);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -14,15 +14,16 @@ export function useAlerts() {
       setLoading(true);
       setError(null);
       const res = await api.getAlerts(activeOnly);
-      setAlerts(res.alerts);
-      setActiveCount(res.active_count);
-      setTotalCount(res.total_count);
+      const filtered = hostId ? res.alerts.filter((alert) => alert.host_id === hostId) : res.alerts;
+      setAlerts(filtered);
+      setActiveCount(filtered.filter((alert) => !alert.resolved).length);
+      setTotalCount(filtered.length);
     } catch (err: any) {
       setError(err?.message || "Failed to load alerts");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hostId]);
 
   const handleIncomingAlert = useCallback((incoming: Alert) => {
     setAlerts((prev) => {

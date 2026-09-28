@@ -53,7 +53,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
   }, [loadHosts]);
 
   const telemetry = useTelemetry(selectedHostId);
-  const alerts = useAlerts();
+  const alerts = useAlerts(selectedHostId);
   const { handleIncomingTelemetry, fetchStats, fetchHistory, clearStream } = telemetry;
   const { handleIncomingAlert, refresh: refreshAlerts, clearAlerts } = alerts;
 
