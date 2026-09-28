@@ -325,10 +325,15 @@ def test_full_real_user_journey() -> None:
 
             # 15) Final browser health signal.
             print("[QA] 14. Console health")
+            expected_auth_resource_error = "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            # The cross-session deactivation scenario intentionally expires the original
+            # session and therefore emits two browser-level 401 resource messages.
+            # Keep the allowlist exact so unrelated console errors still fail QA.
             bad = [
                 message for message in console_errors
                 if "favicon" not in message.lower()
                 and "extension" not in message.lower()
+                and message != expected_auth_resource_error
             ]
             assert not bad, "Browser console errors: " + repr(bad[:10])
             snap(page, "14-final")
