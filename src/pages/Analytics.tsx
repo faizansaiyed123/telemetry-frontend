@@ -51,6 +51,14 @@ export const Analytics: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
+    if (!hostId) {
+      setStats(null);
+      setHistory([]);
+      setPoints([]);
+      setLoading(false);
+      setRefreshing(false);
+      return () => { mounted = false; };
+    }
     const end = new Date();
     const start = new Date(end.getTime() - selectedWindow.milliseconds);
     setRefreshing(true);

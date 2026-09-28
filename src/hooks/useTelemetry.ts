@@ -66,7 +66,7 @@ export function useTelemetry(hostId?: string | null) {
     }
     try {
       setStatsLoading(true);
-      const data = await api.getTelemetryStats(hostId);
+      const data = await api.getTelemetryStats(hostId ?? undefined);
       setStats(data);
     } catch {
       setStats(null);
@@ -119,8 +119,8 @@ export function useTelemetry(hostId?: string | null) {
 
     async function init() {
       const [currRes, histRes, statsRes] = await Promise.allSettled([
-        api.getCurrentTelemetry(hostId),
-        api.getTelemetryHistory(60, hostId),
+        api.getCurrentTelemetry(hostId ?? undefined),
+        api.getTelemetryHistory(60, hostId ?? undefined),
         api.getTelemetryStats(hostId),
       ]);
 

@@ -26,6 +26,7 @@ export function useAlerts(hostId?: string | null) {
   }, [hostId]);
 
   const handleIncomingAlert = useCallback((incoming: Alert) => {
+    if (hostId && incoming.host_id !== hostId) return;
     setAlerts((prev) => {
       const idx = prev.findIndex((a) => a.id === incoming.id);
       let updated: Alert[];
@@ -44,7 +45,7 @@ export function useAlerts(hostId?: string | null) {
       setTotalCount(updated.length);
       return updated;
     });
-  }, []);
+  }, [hostId]);
 
   const clearAlerts = useCallback(() => {
     setAlerts([]);
