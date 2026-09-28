@@ -47,8 +47,10 @@ def test_full_real_user_journey() -> None:
         page = admin_ctx.new_page()
 
         console_errors: list[str] = []
+        http_failures: list[str] = []
         page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
         page.on("pageerror", lambda exc: console_errors.append(str(exc)))
+        page.on("response", lambda response: http_failures.append(f"{response.status()} {response.url}") if response.status() >= 400 else None)
 
         try:
             # 1) Public first-visit journey.
