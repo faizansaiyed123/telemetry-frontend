@@ -200,6 +200,8 @@ export interface IncidentEvidence {
   change_count: number;
   correlation_window_minutes: number;
   findings: string[];
+  metric_findings?: string[];
+  service_impacts?: Array<{ service_id: string; service_name: string; hops: number; critical_dependency: boolean }>;
 }
 
 export interface AuditLog {
