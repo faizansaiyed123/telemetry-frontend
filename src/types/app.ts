@@ -291,3 +291,100 @@ export interface ChangeEvent {
   created_at: string;
 }
 
+
+
+export interface NotificationChannel {
+  id: string;
+  name: string;
+  url: string;
+  event_types: string[];
+  min_severity: Severity;
+  enabled: boolean;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface NotificationDelivery {
+  id: string;
+  channel_id: string;
+  event_type: string;
+  event_id: string;
+  status: "pending" | "delivering" | "delivered" | "failed";
+  attempts: number;
+  last_status_code?: number | null;
+  last_error?: string | null;
+  payload_sha256: string;
+  created_at: string;
+  delivered_at?: string | null;
+}
+export interface NotificationTestResponse {
+  delivery_id: string;
+  status: string;
+}
+
+export interface SyntheticCheckRun {
+  id: number;
+  check_id: string;
+  checked_at: string;
+  duration_ms: number;
+  status_code?: number | null;
+  success: boolean;
+  error?: string | null;
+  consecutive_failures: number;
+}
+export interface SyntheticCheck {
+  id: string;
+  service_id?: string | null;
+  name: string;
+  url: string;
+  method: "GET" | "HEAD";
+  interval_seconds: number;
+  timeout_seconds: number;
+  expected_status: number;
+  enabled: boolean;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+  last_run?: SyntheticCheckRun | null;
+}
+export interface SyntheticCheckRunListResponse {
+  check_id: string;
+  runs: SyntheticCheckRun[];
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  environment: string;
+  description?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface ServiceDependency {
+  source_service_id: string;
+  target_service_id: string;
+  relationship: string;
+  criticality: "low" | "normal" | "high" | "critical";
+  created_at: string;
+}
+export interface TopologyNode {
+  id: string;
+  name: string;
+  environment: string;
+  check_count: number;
+  healthy_check_count: number;
+  incoming_dependencies: number;
+  outgoing_dependencies: number;
+}
+export interface TopologyEdge {
+  source: string;
+  target: string;
+  relationship: string;
+  criticality: string;
+}
+export interface TopologyResponse {
+  generated_at: string;
+  nodes: TopologyNode[];
+  edges: TopologyEdge[];
+}
