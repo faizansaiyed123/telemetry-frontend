@@ -43,7 +43,7 @@ def test_production_workspaces() -> None:
             expect(page.get_by_text(service_b, exact=True)).to_be_visible(timeout=10_000)
 
             page.get_by_text(service_a, exact=True).first.click()
-            page.get_by_role("combobox").nth(2).select_option(label=service_b)
+            page.get_by_role("combobox").first.select_option(label=service_b)
             page.get_by_role("button", name="Add dependency").click()
             expect(page.get_by_text("1 outbound dependencies", exact=True)).to_be_visible(timeout=10_000)
 
