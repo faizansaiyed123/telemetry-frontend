@@ -151,7 +151,7 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: Run real-user browser journey
-        run: pytest -q qa/e2e/test_full_application.py -m e2e
+        run: pytest -q qa/e2e -m e2e
 
       - name: Upload browser artifacts on failure
         if: failure()
