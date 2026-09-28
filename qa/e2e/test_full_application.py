@@ -161,22 +161,22 @@ def test_full_real_user_journey() -> None:
             row = page.locator("div").filter(has_text=host_name).filter(
                 has=page.get_by_role("button", name="Edit")
             ).first
-            row.get_by_role("button", name="Edit").click()
+            row.get_by_role("button", name="Edit").first.click()
             page.get_by_label("Host name").fill(f"{host_name}-updated")
             page.get_by_label("Host environment").fill("qa")
-            row.get_by_role("button", name="Save").click()
+            row.get_by_role("button", name="Save").first.click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_be_visible(timeout=10_000)
 
             row = page.locator("div").filter(has_text=f"{host_name}-updated").filter(
                 has=page.get_by_role("button", name="Deactivate")
             ).first
-            row.get_by_role("button", name="Deactivate").click()
+            row.get_by_role("button", name="Deactivate").first.click()
             expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
-            row.get_by_role("button", name="Activate").click()
+            row.get_by_role("button", name="Activate").first.click()
             expect(row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
 
             page.once("dialog", lambda dialog: dialog.accept())
-            row.get_by_role("button", name="Delete").click()
+            row.get_by_role("button", name="Delete").first.click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_have_count(0, timeout=10_000)
             snap(page, "07-hosts")
 
