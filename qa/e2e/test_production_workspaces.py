@@ -49,8 +49,8 @@ def test_production_workspaces() -> None:
 
             page.get_by_role("button", name="Topology graph").click()
             expect(page.get_by_role("img", name="Service dependency topology")).to_be_visible()
-            expect(page.get_by_text(service_a, exact=False)).to_be_visible()
-            expect(page.get_by_text(service_b, exact=False)).to_be_visible()
+            expect(page.locator(`[data-service-name="${service_a}"]`)).to_be_visible()
+            expect(page.locator(`[data-service-name="${service_b}"]`)).to_be_visible()
 
             # Synthetic check CRUD without external network execution.
             page.get_by_role("link", name="Synthetic", exact=True).click()
