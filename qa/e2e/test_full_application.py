@@ -296,7 +296,7 @@ def test_full_real_user_journey() -> None:
             page.get_by_role("link", name="Settings", exact=True).click()
             expect(page.get_by_role("heading", level=1)).to_contain_text("Settings")
             page.get_by_placeholder("Current password").fill(ADMIN_PASSWORD)
-            page.get_by_placeholder("New password").fill("QaAdminNew!12345")
+            page.get_by_role("textbox", name="New password", exact=True).fill("QaAdminNew!12345")
             page.get_by_placeholder("Confirm new password").fill("QaAdminNew!12345")
             page.get_by_role("button", name="Update password").click()
             expect(page.get_by_text("Password changed successfully.", exact=True)).to_be_visible(
