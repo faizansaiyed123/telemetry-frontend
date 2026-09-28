@@ -148,7 +148,7 @@ export const Operations: React.FC = () => {
     }
   }
 
-  async function toggleRule(rule: AlertRule) {  function beginRuleEdit(rule: AlertRule) {
+  function beginRuleEdit(rule: AlertRule) {
     setEditingRuleId(rule.id);
     setEditRule({
       name: rule.name, metric: rule.metric, operator: rule.operator,
@@ -185,7 +185,7 @@ export const Operations: React.FC = () => {
     } finally { setBusy(null); }
   }
 
-
+  async function toggleRule(rule: AlertRule) {
     setBusy(rule.id);
     try {
       const updated = await api.updateAlertRule(rule.id, { enabled: !rule.enabled });
