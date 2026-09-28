@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: faizansaiyed123/telemetry-backend
-          ref: fix/alembic-version-length
+          ref: e566629cf1821d9f4dbb29b72dbb3154dd5fc065
           path: backend
 
       - name: Setup Python
