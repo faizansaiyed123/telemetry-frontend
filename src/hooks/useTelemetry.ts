@@ -121,7 +121,7 @@ export function useTelemetry(hostId?: string | null) {
       const [currRes, histRes, statsRes] = await Promise.allSettled([
         api.getCurrentTelemetry(hostId ?? undefined),
         api.getTelemetryHistory(60, hostId ?? undefined),
-        api.getTelemetryStats(hostId),
+        api.getTelemetryStats(hostId ?? undefined),
       ]);
 
       if (!mounted) return;
