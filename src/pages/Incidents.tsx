@@ -264,6 +264,21 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                         {evidence.findings.map((finding) => <p key={finding} className="text-xs leading-5 text-slate-500">{finding}</p>)}
                       </div>
                     </div>
+                    {evidence.service_impacts && evidence.service_impacts.length > 0 && (
+                      <div className="mt-5 border-t border-white/6 pt-4">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Downstream service impact</div>
+                        <div className="mt-3 space-y-2">
+                          {evidence.service_impacts.map((impact) => (
+                            <div key={impact.service_id} className="flex items-center justify-between rounded-xl border border-white/7 bg-white/[0.02] px-4 py-3 text-xs">
+                              <span className="text-slate-300">{impact.service_name}</span>
+                              <span className={impact.critical_dependency ? "text-rose-300" : "text-slate-500"}>
+                                {impact.hops} hop{impact.hops === 1 ? "" : "s"}{impact.critical_dependency ? " · critical dependency" : ""}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <p className="mt-4 text-[10px] leading-4 text-slate-600">
                       Correlation window: ±{evidence.correlation_window_minutes} minutes. Findings are evidence-based and do not claim a root cause that was not observed.
                     </p>
