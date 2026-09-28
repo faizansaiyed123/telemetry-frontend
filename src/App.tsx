@@ -14,6 +14,9 @@ import { Incidents } from "./pages/Incidents.js";
 import { SLOs } from "./pages/SLOs.js";
 import { Operations } from "./pages/Operations.js";
 import { Changes } from "./pages/Changes.js";
+import { Notifications } from "./pages/Notifications.js";
+import { SyntheticChecks } from "./pages/SyntheticChecks.js";
+import { Services } from "./pages/Services.js";
 import { api } from "./services/api.js";
 import { clearSession, getStoredToken, getStoredUser } from "./lib/session.js";
 import type { AuthUser } from "./types/app.js";
@@ -50,6 +53,9 @@ function ProtectedApp() {
   else if (path === "/app/slos") content = <SLOs user={user} />;
   else if (path === "/app/hosts") content = <Hosts user={user} />;
   else if (path === "/app/operations" && user.role === "admin") content = <Operations />;
+  else if (path === "/app/notifications" && user.role === "admin") content = <Notifications />;
+  else if (path === "/app/synthetic-checks") content = <SyntheticChecks user={user} />;
+  else if (path === "/app/services") content = <Services user={user} />;
   else if (path === "/app/admin" && user.role === "admin") content = <Admin user={user} />;
   else if (path === "/app/settings") content = <Settings user={user} />;
   else content = (

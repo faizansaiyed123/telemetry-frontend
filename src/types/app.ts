@@ -60,16 +60,22 @@ export interface AlertsResponse {
 export interface HealthResponse {
   status: string;
   uptime_seconds: number;
+  source_mode: "synthetic" | "agent" | "hybrid";
+  simulation_enabled: boolean;
   stream_active: boolean;
   connected_clients: number;
   events_generated: number;
+  events_ingested: number;
 }
 
 export interface SimulationStatus {
   running: boolean;
+  simulation_enabled: boolean;
+  source_mode: "synthetic" | "agent" | "hybrid";
   rate: number;
   sequence: number;
   events_generated: number;
+  events_ingested: number;
   active_anomaly: string | null;
   connected_clients: number;
   uptime_seconds: number;
@@ -164,6 +170,7 @@ export interface AlertRule {
 export interface Incident {
   id: string;
   host_id: string | null;
+  service_id?: string | null;
   title: string;
   status: "open" | "acknowledged" | "resolved";
   severity: Severity;
@@ -193,21 +200,7 @@ export interface IncidentEvidence {
   correlation_window_minutes: number;
   findings: string[];
   metric_findings?: string[];
-}
-
-export type ChangeEventType = "deployment" | "config" | "feature_flag" | "maintenance" | "rollback" | "other";
-
-export interface ChangeEvent {
-  id: string;
-  host_id: string | null;
-  event_type: ChangeEventType;
-  title: string;
-  description: string | null;
-  source: string;
-  actor_user_id: string | null;
-  external_ref: string | null;
-  occurred_at: string;
-  created_at: string;
+  service_impacts?: ServiceImpact[];
 }
 
 export interface AuditLog {
@@ -286,3 +279,60 @@ export interface WebSocketTokenResponse {
   token_type: string;
   expires_in: number;
 }
+
+
+export interface ChangeEvent {
+  id: string;
+  host_id: string | null;
+  event_type: "deployment" | "config" | "feature_flag" | "maintenance" | "rollback" | "other";
+  title: string;
+  description: string | null;
+  source: string;
+  actor_user_id: string | null;
+  external_ref: string | null;
+  occurred_at: string;
+  created_at: string;
+}
+
+
+
+export interface ServiceImpact {
+  service_id: string;
+  service_name: string;
+  hops: number;
+  critical_dependency: boolean;
+}
+export type NotificationEventType = "alert.created" | "alert.resolved" | "incident.created" | "incident.resolved";
+export type NotificationDeliveryStatus = "pending" | "delivering" | "delivered" | "failed";
+export interface NotificationChannel {
+  id: string; name: string; url: string; event_types: NotificationEventType[];
+  min_severity: Severity; enabled: boolean; created_by: string | null; created_at: string; updated_at: string;
+}
+export interface NotificationDelivery {
+  id: string; channel_id: string; event_type: NotificationEventType; event_id: string; status: NotificationDeliveryStatus;
+  attempts: number; last_status_code: number | null; last_error: string | null; payload_sha256: string; created_at: string; delivered_at: string | null;
+}
+export interface NotificationTestResponse { delivery_id: string; status: string; }
+export interface Service {
+  id: string; name: string; environment: string; description: string | null; created_by: string | null; created_at: string; updated_at: string;
+}
+export interface ServiceDependency {
+  source_service_id: string; target_service_id: string; relationship: string;
+  criticality: "low" | "normal" | "high" | "critical"; created_at: string;
+}
+export interface TopologyNode {
+  id: string; name: string; environment: string; check_count: number; healthy_check_count: number;
+  incoming_dependencies: number; outgoing_dependencies: number;
+}
+export interface TopologyEdge { source: string; target: string; relationship: string; criticality: string; }
+export interface TopologyResponse { generated_at: string; nodes: TopologyNode[]; edges: TopologyEdge[]; }
+export interface SyntheticCheckRun {
+  id: number; check_id: string; checked_at: string; duration_ms: number; status_code: number | null;
+  success: boolean; error: string | null; consecutive_failures: number;
+}
+export interface SyntheticCheck {
+  id: string; service_id: string | null; name: string; url: string; method: "GET" | "HEAD";
+  interval_seconds: number; timeout_seconds: number; expected_status: number; enabled: boolean;
+  created_by: string | null; created_at: string; updated_at: string; last_run: SyntheticCheckRun | null;
+}
+export interface SyntheticCheckRunList { check_id: string; runs: SyntheticCheckRun[]; }

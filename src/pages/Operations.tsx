@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Activity, Copy, Database, Gauge, KeyRound, Lock, Plus, RefreshCw, ShieldCheck, Trash2, XCircle } from "lucide-react";
+import { Activity, Copy, Database, Gauge, KeyRound, Lock, Pencil, Plus, RefreshCw, ShieldCheck, Trash2, X, XCircle } from "lucide-react";
 import type { AlertRule, ApiKey, ApiKeyCreated, AuditLog, Host, PlatformMetrics } from "../types/app.js";
 import { api } from "../services/api.js";
 
@@ -52,6 +52,8 @@ export const Operations: React.FC = () => {
   const [ruleDuration, setRuleDuration] = useState("15");
   const [ruleCooldown, setRuleCooldown] = useState("300");
   const [ruleSeverity, setRuleSeverity] = useState<AlertRule["severity"]>("WARNING");
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [editRule, setEditRule] = useState<Partial<AlertRule> | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -144,6 +146,43 @@ export const Operations: React.FC = () => {
     } finally {
       setBusy(null);
     }
+  }
+
+  function beginRuleEdit(rule: AlertRule) {
+    setEditingRuleId(rule.id);
+    setEditRule({
+      name: rule.name, metric: rule.metric, operator: rule.operator,
+      threshold: rule.threshold, duration_seconds: rule.duration_seconds,
+      cooldown_seconds: rule.cooldown_seconds, severity: rule.severity, enabled: rule.enabled,
+    });
+    setError(null); setNotice(null);
+  }
+
+  async function saveRuleEdit(rule: AlertRule) {
+    if (!editRule) return;
+    const name = String(editRule.name ?? "").trim();
+    const threshold = Number(editRule.threshold);
+    const duration = Number(editRule.duration_seconds);
+    const cooldown = Number(editRule.cooldown_seconds);
+    if (!name || ![threshold, duration, cooldown].every(Number.isFinite)) {
+      setError("Alert rule fields must be valid.");
+      return;
+    }
+    setBusy(rule.id + ":edit"); setError(null); setNotice(null);
+    try {
+      const updated = await api.updateAlertRule(rule.id, {
+        name,
+        metric: editRule.metric as AlertRule["metric"],
+        operator: editRule.operator as AlertRule["operator"],
+        threshold, duration_seconds: duration, cooldown_seconds: cooldown,
+        severity: editRule.severity as AlertRule["severity"],
+        enabled: Boolean(editRule.enabled),
+      });
+      setRules((rows) => rows.map((item) => item.id === rule.id ? updated : item));
+      setEditingRuleId(null); setEditRule(null); setNotice("Alert rule updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update alert rule.");
+    } finally { setBusy(null); }
   }
 
   async function toggleRule(rule: AlertRule) {
@@ -323,8 +362,8 @@ export const Operations: React.FC = () => {
                     ["Listener", platform.gauges.event_bus_listener_connected ?? 0],
                     ["Queue", platform.gauges.event_bus_queue_depth ?? 0],
                   ].map(([label, value]) => {
-                    const connected = Number(value) > 0;
                     const queue = label === "Queue";
+                    const connected = Number(value) > 0;
                     const disabled = !connected && Number(platform.runtime.event_bus_connected ?? 0) === 0 && Number(platform.runtime.event_bus_queue ?? 0) === 0;
                     return (
                       <div key={String(label)} className="rounded-xl border border-white/6 bg-white/[0.02] p-3">
@@ -336,7 +375,7 @@ export const Operations: React.FC = () => {
                     );
                   })}
                 </div>
-                <p className="mt-3 text-[10px] leading-4 text-slate-600">Distributed fan-out is optional and disabled by default. When enabled, worker health is visible here without exposing database credentials or deployment settings.</p>
+                <p className="mt-3 text-[10px] leading-4 text-slate-600">Distributed fan-out is optional and disabled by default; local mode remains valid when the event bus is not configured.</p>
               </section>
             </div>
           </>
@@ -377,7 +416,26 @@ export const Operations: React.FC = () => {
             <div className="border-b border-white/6 px-5 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Configured rules</div>
             <div className="divide-y divide-white/6">
               {rules.map((rule) => (
-                <div key={rule.id} className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
+                <div key={rule.id} className="px-5 py-5">
+                  {editingRuleId === rule.id && editRule ? (
+                    <div className="rounded-xl border border-cyan-300/10 bg-black/10 p-4">
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <input value={String(editRule.name ?? rule.name)} onChange={(e) => setEditRule({ ...editRule, name: e.target.value })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                        <select value={String(editRule.metric ?? rule.metric)} onChange={(e) => setEditRule({ ...editRule, metric: e.target.value as AlertRule["metric"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{metrics.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
+                        <select value={String(editRule.operator ?? rule.operator)} onChange={(e) => setEditRule({ ...editRule, operator: e.target.value as AlertRule["operator"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{operators.map((item) => <option key={item}>{item}</option>)}</select>
+                        <input value={String(editRule.threshold ?? rule.threshold)} onChange={(e) => setEditRule({ ...editRule, threshold: Number(e.target.value) })} type="number" step="0.01" className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                        <input value={String(editRule.duration_seconds ?? rule.duration_seconds)} onChange={(e) => setEditRule({ ...editRule, duration_seconds: Number(e.target.value) })} type="number" min="0" max="86400" className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                        <input value={String(editRule.cooldown_seconds ?? rule.cooldown_seconds)} onChange={(e) => setEditRule({ ...editRule, cooldown_seconds: Number(e.target.value) })} type="number" min="0" max="86400" className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white" />
+                        <select value={String(editRule.severity ?? rule.severity)} onChange={(e) => setEditRule({ ...editRule, severity: e.target.value as AlertRule["severity"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white">{(["INFO","WARNING","CRITICAL"] as const).map((value)=><option key={value}>{value}</option>)}</select>
+                        <label className="flex items-center gap-2 rounded-xl border border-white/8 px-3 py-2.5 text-xs text-slate-400"><input type="checkbox" checked={Boolean(editRule.enabled ?? rule.enabled)} onChange={(e)=>setEditRule({...editRule,enabled:e.target.checked})}/>Enabled</label>
+                      </div>
+                      <div className="mt-3 flex justify-end gap-2">
+                        <button onClick={()=>void saveRuleEdit(rule)} disabled={busy===rule.id+":edit"} className="rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950 disabled:opacity-40">{busy===rule.id+":edit"?"Saving…":"Save changes"}</button>
+                        <button onClick={()=>{setEditingRuleId(null);setEditRule(null)}} className="inline-flex items-center gap-1.5 rounded-xl border border-white/8 px-4 py-2.5 text-xs text-slate-400"><X className="h-3.5 w-3.5"/>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium text-white">{rule.name}</span>
@@ -387,9 +445,12 @@ export const Operations: React.FC = () => {
                     <div className="mt-2 text-xs text-slate-600">{metricLabel(rule.metric)} {rule.operator} {rule.threshold} · sustained {rule.duration_seconds}s · cooldown {rule.cooldown_seconds}s</div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <button onClick={() => beginRuleEdit(rule)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400"><Pencil className="h-3.5 w-3.5" />Edit</button>
                     <button disabled={busy === rule.id} onClick={() => void toggleRule(rule)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400 disabled:opacity-40">{rule.enabled ? "Pause" : "Enable"}</button>
                     <button disabled={busy === rule.id} onClick={() => void deleteRule(rule)} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/15 px-3 py-2 text-xs text-rose-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />Delete</button>
                   </div>
+                  </div>
+                  )}
                 </div>
               ))}
               {rules.length === 0 && <div className="p-8 text-sm text-slate-500">No rules configured yet.</div>}

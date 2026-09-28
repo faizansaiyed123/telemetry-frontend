@@ -6,6 +6,7 @@ import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
 import { api } from "../src/services/api.js";
 import { getTelemetryFreshness } from "../src/utils/hostHealth.js";
+import { selectPreferredTelemetryHost } from "../src/utils/telemetrySource.js";
 
 describe("Frontend Utilities & Data Formatting", () => {
   it("formats metric numbers correctly without excessive decimals", () => {
@@ -106,6 +107,17 @@ describe("Production operations API surface", () => {
     assert.equal(typeof api.getPlatformMetrics, "function");
     assert.equal(typeof api.getAuditLogs, "function");
     assert.equal(typeof api.getIncidentEvidence, "function");
+    assert.equal(typeof api.getChangeEvents, "function");
+    assert.equal(typeof api.createChangeEvent, "function");
+    assert.equal(typeof api.getNotificationChannels, "function");
+    assert.equal(typeof api.testNotificationChannel, "function");
+    assert.equal(typeof api.getNotificationDeliveries, "function");
+    assert.equal(typeof api.retryNotificationDelivery, "function");
+    assert.equal(typeof api.getSyntheticChecks, "function");
+    assert.equal(typeof api.runSyntheticCheck, "function");
+    assert.equal(typeof api.getServices, "function");
+    assert.equal(typeof api.addServiceDependency, "function");
+    assert.equal(typeof api.getTopology, "function");
   });
 });
 
@@ -246,5 +258,83 @@ describe("WebSocket authentication handoff", () => {
       globalThis.fetch = originalFetch;
       globalThis.window = originalWindow;
     }
+  });
+});
+
+describe("Live telemetry host selection", () => {describe("Current telemetry host scoping", () => {
+  it("adds host_id to current telemetry requests", async () => {
+    const originalWindow = globalThis.window;
+    const originalFetch = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.window = { localStorage: { getItem: () => "token", removeItem: () => undefined }, location: { pathname: "/app", replace: () => undefined } } as unknown as Window & typeof globalThis;
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      calls.push(String(input));
+      return new Response(JSON.stringify({ event: null, available: false }), { status: 200, headers: { "Content-Type": "application/json" } });
+    };
+    try {
+      await api.getCurrentTelemetry("host-123");
+      assert.match(calls[0], /\/api\/telemetry\/current\?host_id=host-123$/);
+    } finally {
+      globalThis.fetch = originalFetch;
+      globalThis.window = originalWindow;
+    }
+  });
+});
+
+
+  const now = Date.parse("2026-09-24T09:00:00.000Z");
+
+  const host = (
+    id: string,
+    agent_version: string | null,
+    last_seen_at: string | null,
+    is_active = true,
+  ) => ({
+    id,
+    name: id,
+    environment: "production",
+    is_active,
+    agent_version,
+    last_seen_at,
+  });
+
+  it("prefers a currently reporting real agent over an active simulator", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("windows-dev", "telemetry-agent/1.0", "2026-09-24T08:59:40.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "windows-dev");
+  });
+
+  it("prefers a stale agent over a simulator when no agent is currently reporting", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, "2026-09-24T08:59:59.000Z"),
+        host("linux-dev", "telemetry-agent/1.0", "2026-09-24T08:55:00.000Z"),
+      ],
+      now,
+    );
+    assert.equal(selected, "linux-dev");
+  });
+
+  it("falls back to an active host when no agent has ever reported", () => {
+    const selected = selectPreferredTelemetryHost(
+      [
+        host("synthetic-local", null, null),
+        host("disabled", "telemetry-agent/1.0", null, false),
+      ],
+      now,
+    );
+    assert.equal(selected, "synthetic-local");
+  });
+
+  it("returns null when there are no active hosts", () => {
+    assert.equal(
+      selectPreferredTelemetryHost([host("disabled", "telemetry-agent/1.0", null, false)], now),
+      null,
+    );
   });
 });

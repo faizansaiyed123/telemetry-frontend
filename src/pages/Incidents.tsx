@@ -166,6 +166,7 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                         <span className={"rounded-full border px-2 py-1 text-[10px] font-medium " + statusClass(incident.status)}>{incident.status}</span>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                        {incident.service_id && <span className="text-cyan-300">service {incident.service_id}</span>}
                         <span>{new Date(incident.first_seen_at).toLocaleString()}</span>
                         <span>{formatDuration(incident.first_seen_at, incident.last_seen_at)}</span>
                         <span>{incident.alert_ids.length} correlated alerts</span>
@@ -216,6 +217,10 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                   <div className="mt-2 break-all font-mono text-xs text-slate-300">{selected.host_id ?? "System"}</div>
                 </div>
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Service</div>
+                  <div className="mt-2 break-all font-mono text-xs text-cyan-200">{selected.service_id ?? "Unassigned"}</div>
+                </div>
+                <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
                   <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Duration</div>
                   <div className="mt-2 text-sm text-slate-300">{formatDuration(selected.first_seen_at, selected.last_seen_at)}</div>
                 </div>
@@ -235,6 +240,8 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                 </div>
                 {evidence ? (
                   <>
+                    {evidence.metric_findings && evidence.metric_findings.length > 0 && <div className="mt-4 rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Metric findings</div><div className="mt-2 space-y-2">{evidence.metric_findings.map((finding)=><p key={finding} className="text-xs leading-5 text-slate-500">{finding}</p>)}</div></div>}
+                    {evidence.service_impacts && evidence.service_impacts.length > 0 && <div className="mt-4 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.03] p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-cyan-300">Downstream service impact</div><div className="mt-2 space-y-2">{evidence.service_impacts.map((impact)=><div key={impact.service_id} className="flex items-center justify-between gap-3 text-xs"><span className="text-slate-300">{impact.service_name}</span><span className="text-slate-600">{impact.hops} hop(s) · {impact.critical_dependency?"critical dependency":"dependency"}</span></div>)}</div></div>}
                     <div className="mt-4 grid gap-2 sm:grid-cols-3">
                       <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Alerts</div><div className="mt-1 text-lg font-semibold text-white">{evidence.alert_count}</div></div>
                       <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Metrics</div><div className="mt-1 text-lg font-semibold text-white">{evidence.metric_count}</div></div>
