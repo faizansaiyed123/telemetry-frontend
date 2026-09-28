@@ -125,6 +125,26 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
     }
   }
 
+  async function remove(slo: SLO) {
+    if (!window.confirm("Delete SLO \"" + slo.name + "\"?")) return;
+    setDeleting(slo.id);
+    setError(null);
+    try {
+      await api.deleteSlo(slo.id);
+      setSlos((rows) => rows.filter((row) => row.id !== slo.id));
+      setStatuses((current) => {
+        const next = { ...current };
+        delete next[slo.id];
+        return next;
+      });
+      setNotice("SLO deleted.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete SLO.");
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   async function saveEdit() {
     if (!editingSlo) return;
     setSavingEdit(true);
