@@ -28,6 +28,8 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingSlo, setEditingSlo] = useState<SLO | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -123,25 +125,35 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
     }
   }
 
-  async function remove(slo: SLO) {
-    if (!window.confirm("Delete SLO \"" + slo.name + "\"?")) return;
-    setDeleting(slo.id);
+  async function saveEdit() {
+    if (!editingSlo) return;
+    setSavingEdit(true);
     setError(null);
     try {
-      await api.deleteSlo(slo.id);
-      setSlos((rows) => rows.filter((item) => item.id !== slo.id));
-      setStatuses((current) => {
-        const next = { ...current };
-        delete next[slo.id];
-        return next;
+      const updated = await api.updateSlo(editingSlo.id, {
+        name: editingSlo.name.trim(),
+        host_id: editingSlo.host_id,
+        metric: editingSlo.metric,
+        operator: editingSlo.operator,
+        threshold: editingSlo.threshold,
+        objective_percent: editingSlo.objective_percent,
+        window_hours: editingSlo.window_hours,
+        enabled: editingSlo.enabled,
       });
-      setNotice("SLO deleted.");
+      setSlos((rows) => rows.map((row) => row.id === updated.id ? updated : row));
+      try {
+        const status = await api.getSloStatus(updated.id);
+        setStatuses((current) => ({ ...current, [updated.id]: status }));
+      } catch {}
+      setEditingSlo(null);
+      setNotice("SLO updated.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to delete SLO.");
+      setError(err instanceof Error ? err.message : "Unable to update SLO.");
     } finally {
-      setDeleting(null);
+      setSavingEdit(false);
     }
   }
+
 
   const hostName = (id: string) => hosts.find((host) => host.id === id)?.name ?? id;
 
@@ -208,6 +220,25 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
         </div>
       )}
 
+      {editingSlo && (
+        <section className="rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.025] p-5">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-white">Edit SLO</div>
+            <button onClick={() => setEditingSlo(null)} className="rounded-lg p-2 text-slate-500 hover:text-white"><XCircle className="h-4 w-4" /></button>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <input value={editingSlo.name} onChange={(e) => setEditingSlo({ ...editingSlo, name: e.target.value })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" />
+            <select value={editingSlo.host_id} onChange={(e) => setEditingSlo({ ...editingSlo, host_id: e.target.value })} className="rounded-xl border border-white/8 bg-slate-950 px-4 py-3 text-sm text-white">{hosts.map((host) => <option key={host.id} value={host.id}>{host.name} · {host.environment}</option>)}</select>
+            <select value={editingSlo.metric} onChange={(e) => setEditingSlo({ ...editingSlo, metric: e.target.value as AlertRule["metric"] })} className="rounded-xl border border-white/8 bg-slate-950 px-4 py-3 text-sm text-white">{metrics.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
+            <div className="grid grid-cols-[0.6fr_1fr] gap-2"><select value={editingSlo.operator} onChange={(e) => setEditingSlo({ ...editingSlo, operator: e.target.value as AlertRule["operator"] })} className="rounded-xl border border-white/8 bg-slate-950 px-3 py-3 text-sm text-white">{operators.map((item) => <option key={item} value={item}>{item}</option>)}</select><input type="number" value={editingSlo.threshold} onChange={(e) => setEditingSlo({ ...editingSlo, threshold: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-3 py-3 text-sm text-white" /></div>
+            <input type="number" min="0.01" max="100" step="0.01" value={editingSlo.objective_percent} onChange={(e) => setEditingSlo({ ...editingSlo, objective_percent: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" />
+            <input type="number" min="1" max="720" value={editingSlo.window_hours} onChange={(e) => setEditingSlo({ ...editingSlo, window_hours: Number(e.target.value) })} className="rounded-xl border border-white/8 bg-black/10 px-4 py-3 text-sm text-white" />
+            <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={editingSlo.enabled} onChange={(e) => setEditingSlo({ ...editingSlo, enabled: e.target.checked })} />Enabled</label>
+          </div>
+          <div className="mt-4 flex justify-end gap-2"><button onClick={() => setEditingSlo(null)} className="rounded-xl border border-white/8 px-4 py-2.5 text-xs text-slate-400">Cancel</button><button onClick={() => void saveEdit()} disabled={savingEdit || !editingSlo.name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950"><Plus className="h-3.5 w-3.5" />{savingEdit ? "Saving…" : "Save changes"}</button></div>
+        </section>
+      )}
+
       {loading && slos.length === 0 ? (
         <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-8 text-sm text-slate-500">Loading service objectives…</div>
       ) : slos.length === 0 ? (
@@ -265,6 +296,7 @@ export const SLOs: React.FC<{ user: AuthUser }> = ({ user }) => {
                       </div>
                       {user.role === "admin" && (
                         <div className="flex gap-2">
+                          <button onClick={() => setEditingSlo(slo)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400">Edit</button>
                           <button onClick={() => void toggle(slo)} className="rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400">{slo.enabled ? "Pause" : "Enable"}</button>
                           <button disabled={deleting === slo.id} onClick={() => void remove(slo)} aria-label={"Delete " + slo.name} className="rounded-xl border border-rose-500/15 px-3 py-2 text-xs text-rose-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" /></button>
                         </div>
