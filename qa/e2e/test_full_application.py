@@ -141,7 +141,7 @@ def test_full_real_user_journey() -> None:
             print("[QA] 6. Analytics")
             page.get_by_role("link", name="Analytics", exact=True).click()
             expect(page).to_have_url(f"{BASE_URL}/app/analytics")
-            expect(page.get_by_role("heading", level=1)).to_contain_text("Analytics")
+            expect(page.get_by_role("heading", level=1)).to_contain_text("Queryable system history")
             expect(page.get_by_text("Metrics tracked", exact=True)).to_be_visible()
             snap(page, "06-analytics")
 
