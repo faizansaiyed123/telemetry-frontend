@@ -263,7 +263,7 @@ def test_full_real_user_journey() -> None:
             login(admin2, *accounts["admin2"])
             admin2.get_by_role("link", name="Administration", exact=True).click()
             admin_row = admin2.get_by_text(ADMIN_EMAIL, exact=True).locator("xpath=../../../..")
-            admin_row.get_by_role("button", name="Deactivate", exact=True).click()
+            admin_row.get_by_role("button", name="Deactivate", exact=True).first.click()
             expect(admin_row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
 
             page.goto(f"{BASE_URL}/app")
