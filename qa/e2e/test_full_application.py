@@ -208,7 +208,7 @@ def test_full_real_user_journey() -> None:
             )
 
             current_row = page.locator("div").filter(has_text=ADMIN_EMAIL).filter(
-                has=page.get_by_role("button", name="Deactivate")
+                has=page.get_by_role("button", name="Deactivate (current)", exact=True)
             ).first
             expect(current_row.get_by_role("button", name="Deactivate (current)", exact=True)).to_be_disabled()
             snap(page, "08-administration")
@@ -262,7 +262,7 @@ def test_full_real_user_journey() -> None:
             login(admin2, *accounts["admin2"])
             admin2.get_by_role("link", name="Administration", exact=True).click()
             admin_row = admin2.locator("div").filter(has_text=ADMIN_EMAIL).filter(
-                has=admin2.get_by_role("button", name="Deactivate")
+                has=admin2.get_by_role("button", name="Deactivate", exact=True)
             ).first
             admin_row.get_by_role("button", name="Deactivate").click()
             expect(admin_row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
