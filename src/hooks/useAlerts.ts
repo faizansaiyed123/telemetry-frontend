@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api.js";
 import { Alert } from "../types/alerts.js";
 
-export function useAlerts() {
+export function useAlerts(hostId?: string | null) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [activeCount, setActiveCount] = useState<number>(0);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -14,7 +14,8 @@ export function useAlerts() {
       setLoading(true);
       setError(null);
       const res = await api.getAlerts(activeOnly);
-      setAlerts(res.alerts);
+      const filtered = hostId ? res.alerts.filter((alert) => alert.host_id === hostId) : res.alerts;
+      setAlerts(filtered);
       setActiveCount(res.active_count);
       setTotalCount(res.total_count);
     } catch (err: any) {
@@ -53,7 +54,7 @@ export function useAlerts() {
 
   useEffect(() => {
     fetchAlerts();
-  }, [fetchAlerts]);
+  }, [fetchAlerts, hostId]);
 
   return {
     alerts,
