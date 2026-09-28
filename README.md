@@ -66,6 +66,11 @@ The /app area provides:
 - Self-service password change
 - API documentation links
 - WebSocket connection and reconnect status
+- Notification channels and durable delivery replay
+- Synthetic HTTP monitoring and run history
+- Service registry, dependency management, and topology
+- Full SLO and alert-rule editing
+- Distributed realtime fan-out health
 
 ## Role-aware UI
 
@@ -161,6 +166,9 @@ telemetry-frontend/
 | /app/incidents | Correlated incidents and evidence windows | Required |
 | /app/changes | Deployment/configuration/maintenance change timeline | Required |
 | /app/slos | SLO and error-budget status | Required |
+| /app/notifications | Webhook channels and delivery history | Admin |
+| /app/synthetic-checks | Synthetic HTTP checks and run history | Required |
+| /app/services | Service registry, dependencies, and topology | Required |
 | /app/operations | Runtime, alert rules, agent keys, audit log | Admin |
 | /app/admin | User administration | Admin |
 | /app/settings | Account and password settings | Required |
@@ -312,6 +320,23 @@ GET  /api/observability/metrics
 GET  /api/observability/audit-logs
 GET  /api/observability/metrics/prometheus
 POST /api/ingest/v1/telemetry
+```
+
+### Notifications, synthetic monitoring, and topology
+
+```
+GET/POST/PATCH/DELETE /api/notification-channels...
+POST /api/notification-channels/{channel_id}/test
+GET  /api/notification-channels/deliveries
+POST /api/notification-channels/deliveries/{delivery_id}/retry
+
+GET/POST/PATCH/DELETE /api/synthetic-checks...
+POST /api/synthetic-checks/{check_id}/run
+GET  /api/synthetic-checks/{check_id}/runs
+
+GET/POST/PATCH/DELETE /api/services...
+GET/POST/DELETE /api/services/{service_id}/dependencies...
+GET  /api/topology
 ```
 
 ### Hosts and users
@@ -501,6 +526,10 @@ Confirm that PostgreSQL is available, migrations have been applied, and backend 
 
 ---
 
+## Browser end-to-end verification
+
+The repository also contains a Playwright browser journey that exercises public signup/login, live telemetry, simulation controls, alert acknowledgement, analytics, host administration, role-based access, cross-session deactivation, notifications, synthetic monitoring, service topology, password change, logout, and mobile navigation. The workflow intentionally runs against the backend repository rather than treating frontend build success as full-system verification.
+
 ## CI workflow
 
 The frontend workflow:
@@ -527,3 +556,17 @@ The authenticated control center is intentionally organized around operational w
 Agent secrets are treated as one-time credentials: the UI only displays the returned secret immediately after creation and the listing API exposes only a prefix and lifecycle metadata. The browser never treats its cached role as an authorization boundary; the backend remains authoritative.
 
 The live dashboard also surfaces WebSocket sequence gaps and links operators to historical Analytics for backfill investigation.
+
+
+### Production integration surfaces
+
+The production frontend also exposes the backend observability control plane for:
+
+- signed webhook notification channels and durable delivery retry history
+- synthetic HTTP checks and run history
+- service registry, dependency edges, and topology
+- incident metric findings and downstream service impact
+- distributed realtime fan-out health
+- host-scoped live telemetry and alert context
+
+The browser E2E workflow starts the current frontend against the current backend repository state. A green frontend unit/build CI result does not by itself establish that the backend is deployment-ready; browser integration remains a separate verification gate.
