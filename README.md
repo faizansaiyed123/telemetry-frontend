@@ -66,6 +66,11 @@ The /app area provides:
 - Self-service password change
 - API documentation links
 - WebSocket connection and reconnect status
+- Notification channels and durable delivery replay
+- Synthetic HTTP monitoring and run history
+- Service registry, dependency management, and topology
+- Full SLO and alert-rule editing
+- Distributed realtime fan-out health
 
 ## Role-aware UI
 
