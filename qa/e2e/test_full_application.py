@@ -10,7 +10,7 @@ from playwright.sync_api import Browser, Page, expect, sync_playwright
 BASE_URL = os.getenv("QA_BASE_URL", "http://127.0.0.1:5173")
 API_URL = os.getenv("QA_API_URL", "http://127.0.0.1:8000")
 ADMIN_EMAIL = os.getenv("QA_ADMIN_EMAIL", "qa-admin@example.com")
-ADMIN_PASSWORD = os.getenv("QA_ADMIN_PASSWORD", "QaAdmin!12345")
+ADMIN_PASSWORD = os.environ["QA_ADMIN_PASSWORD"]
 ARTIFACT_DIR = Path(os.getenv("QA_ARTIFACT_DIR", "qa-artifacts"))
 ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
 
