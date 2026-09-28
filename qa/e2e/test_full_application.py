@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from pathlib import Path
 
 import pytest
@@ -88,7 +89,10 @@ def test_full_real_user_journey() -> None:
             ):
                 expect(page.locator(f"#{card}")).to_be_visible()
             seq1 = sequence_value(page)
-            expect.poll(lambda: sequence_value(page), timeout=8_000, intervals=[200, 500, 1000]).not_to_be(seq1)
+            deadline = time.monotonic() + 8.0
+            while time.monotonic() < deadline and sequence_value(page) == seq1:
+                page.wait_for_timeout(250)
+            assert sequence_value(page) != seq1, "Live telemetry sample did not advance"
             expect(page.get_by_text("Statistics", exact=False)).to_be_visible()
             expect(page.get_by_text("Historical", exact=False)).to_be_visible()
             snap(page, "03-dashboard-live")
