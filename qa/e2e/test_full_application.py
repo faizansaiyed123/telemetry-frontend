@@ -134,11 +134,10 @@ def test_full_real_user_journey() -> None:
             expect(
                 page.locator("div").filter(has_text="Acknowledge").first
             ).to_be_visible(timeout=25_000)
-            alert_row = page.locator("div").filter(has_text="Acknowledge").first
-            alert_row.get_by_role("button", name="Acknowledge").click()
-            expect(alert_row.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
+            page.get_by_role("button", name="Acknowledge").first.click()
+            expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             page.get_by_role("button", name="Refresh").click()
-            expect(page.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             snap(page, "05-alert-lifecycle")
 
             # 6) Analytics.
