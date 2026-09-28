@@ -206,6 +206,7 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_text("Password reset successfully.", exact=True)).to_be_visible(
                 timeout=10_000
             )
+            accounts["viewer"] = (accounts["viewer"][0], "ViewerNew!12345")
 
             current_row = page.locator("div").filter(has_text=ADMIN_EMAIL).filter(
                 has=page.get_by_role("button", name="Deactivate (current)", exact=True)
