@@ -211,7 +211,7 @@ def test_full_real_user_journey() -> None:
             current_row = page.locator("div").filter(has_text=ADMIN_EMAIL).filter(
                 has=page.get_by_role("button", name="Deactivate")
             ).first
-            expect(current_row.get_by_role("button", name=re.compile("Deactivate"))).to_be_disabled()
+            expect(current_row.get_by_role("button", name="Deactivate (current)", exact=True)).to_be_disabled()
             snap(page, "08-administration")
 
             # 9) Viewer: read-only UX plus backend authorization.
