@@ -198,7 +198,7 @@ export const Notifications: React.FC = () => {
               {EVENT_TYPES.map((value) => <button type="button" key={value} onClick={() => toggleEvent(value)} className={"rounded-full border px-3 py-1.5 text-xs " + (draft.event_types.includes(value) ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200" : "border-white/8 text-slate-500")}>{value}</button>)}
             </div>
           </div>
-          <button onClick={() => void create()} disabled={busy === "create"} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-40">{busy === "create" ? "Creating…" : "Create channel"}</button>
+          <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft((d) => ({ ...d, enabled: e.target.checked }))} />Enabled after creation</label><button onClick={() => void create()} disabled={busy === "create"} className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-40">{busy === "create" ? "Creating…" : "Create channel"}</button>
         </div>
         <p className="mt-3 text-xs leading-5 text-slate-600">The backend validates webhook destinations, signs payloads, and persists delivery attempts.</p>
       </section>
