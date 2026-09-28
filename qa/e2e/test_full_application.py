@@ -129,11 +129,9 @@ def test_full_real_user_journey() -> None:
             page.get_by_role("checkbox").check()
             expect(page.get_by_role("checkbox")).to_be_checked()
             # Alert generation is asynchronous; keep the user flow on the alert page.
-            expect(
-                page.locator("div").filter(has_text="Acknowledge").first
-            ).to_be_visible(timeout=25_000)
-            alert_row = page.locator("div").filter(has_text="Acknowledge").first
-            alert_row.get_by_role("button", name="Acknowledge").click()
+            acknowledge_button = page.get_by_role("button", name="Acknowledge", exact=True).first
+            expect(acknowledge_button).to_be_visible(timeout=25_000)
+            acknowledge_button.click()
             expect(alert_row.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
             page.get_by_role("button", name="Refresh").click()
             expect(page.get_by_text("Acknowledged", exact=True)).to_be_visible(timeout=10_000)
