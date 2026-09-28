@@ -155,18 +155,14 @@ def test_full_real_user_journey() -> None:
             page.get_by_role("button", name="Add host").click()
             expect(page.get_by_text(host_name, exact=True)).to_be_visible(timeout=10_000)
 
-            row = page.locator("div").filter(has_text=host_name).filter(
-                has=page.get_by_role("button", name="Edit")
-            ).first
-            row.get_by_role("button", name="Edit").click()
+            row = page.get_by_text(host_name, exact=True).locator("xpath=../../..")
+            row.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_label("Host name").fill(f"{host_name}-updated")
             page.get_by_label("Host environment").fill("qa")
             row.get_by_role("button", name="Save").click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_be_visible(timeout=10_000)
 
-            row = page.locator("div").filter(has_text=f"{host_name}-updated").filter(
-                has=page.get_by_role("button", name="Deactivate")
-            ).first
+            row = page.get_by_text(f"{host_name}-updated", exact=True).locator("xpath=../../..")
             row.get_by_role("button", name="Deactivate").click()
             expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
             row.get_by_role("button", name="Activate").click()
