@@ -81,6 +81,7 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
               <span>{freshness.label}{freshness.ageSeconds !== null ? ` · agent sample ${freshness.ageSeconds}s ago` : ""}</span>
               {host?.agent_version && <span>Agent {host.agent_version}</span>}
+              {current && <span data-testid="live-telemetry-sequence" className="font-mono">Sample #{current.sequence}</span>}
               {lastReceivedAt !== null && <span>UI received {Math.max(0, Math.round((Date.now() - lastReceivedAt) / 1000))}s ago</span>}
             </div>
           </div>
