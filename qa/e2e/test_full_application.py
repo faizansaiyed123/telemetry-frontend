@@ -159,7 +159,7 @@ def test_full_real_user_journey() -> None:
             row.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_label("Host name").fill(f"{host_name}-updated")
             page.get_by_label("Host environment").fill("qa")
-            row.get_by_role("button", name="Save").click()
+            page.get_by_role("button", name="Save", exact=True).click()
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_be_visible(timeout=10_000)
 
             row = page.get_by_text(f"{host_name}-updated", exact=True).locator("xpath=../../..")
