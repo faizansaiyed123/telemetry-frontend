@@ -34,7 +34,6 @@ export function useAlerts(hostId?: string | null) {
         updated = [...prev];
         updated[idx] = incoming;
       } else {
-        // Prepend new alert
         updated = [incoming, ...prev];
         if (updated.length > 200) {
           updated = updated.slice(0, 200);
