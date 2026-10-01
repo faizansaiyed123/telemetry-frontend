@@ -1,3 +1,5 @@
+node_modules/
+dist/
 .venv/
 __pycache__/
 *.pyc
@@ -5,8 +7,15 @@ __pycache__/
 .git/
 .gitignore
 .env
+.env.local
 .env.example
+*.local
 *.md
 docker-compose*.yml
 Dockerfile
 .dockerignore
+qa/
+tests/
+bun.lock
+playwright-report/
+test-results/
