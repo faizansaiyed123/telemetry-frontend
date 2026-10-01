@@ -258,6 +258,74 @@ npm start remains a Vite server alias for compatibility. For production, serve t
 
 ---
 
+## Docker
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/) (v2 or later)
+
+### Quick start
+
+```bash
+docker compose up --build
+```
+
+This builds the Vite/React application and serves it with nginx on **port 3000**.
+
+### Frontend port
+
+The frontend is exposed on **port 3000** (HTTP).
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `VITE_API_BASE_URL` | `http://localhost:8000` | Backend HTTP and WebSocket base URL |
+
+The API URL is configurable at runtime by setting `VITE_API_BASE_URL`
+in the `docker-compose.yml` `environment` section or via a `.env` file:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+docker compose up --build
+```
+
+### How the frontend connects to the backend
+
+The frontend reads the backend URL from the `VITE_API_BASE_URL`
+environment variable (via Vite's `import.meta.env`). At container
+startup, an entrypoint script replaces the default API URL in the
+built JavaScript assets with the runtime value, so the backend URL
+can be changed without rebuilding the image.
+
+Set `VITE_API_BASE_URL` to point to your backend:
+
+```bash
+# If the backend runs on the same host:
+VITE_API_BASE_URL=http://localhost:8000
+
+# If the backend is in a different container on the same Docker network:
+VITE_API_BASE_URL=http://telemetry-backend:8000
+```
+
+Also ensure the backend CORS configuration allows the frontend origin
+(`CORS_ALLOWED_ORIGINS` on the backend).
+
+### Stopping the containers
+
+```bash
+docker compose down
+```
+
+### Rebuilding the containers
+
+```bash
+docker compose up --build --force-recreate
+```
+
+---
+
 ## Backend integration
 
 The frontend expects the API contract implemented by the Telemetry backend.
