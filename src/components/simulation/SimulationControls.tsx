@@ -59,7 +59,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
       id="simulation-controls"
       className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg space-y-5"
     >
-      {/* Header with Title and Engine State */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
@@ -75,7 +74,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
           </div>
         </div>
 
-        {/* Engine Play/Pause + Reset */}
         <div className="flex items-center gap-2">
           <button
             id="btn-play-pause"
@@ -113,9 +111,7 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
         </div>
       </div>
 
-      {/* Control Grid: Rate Controller & Fault Injection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Stream Frequency / Rate Controls */}
         <div className="bg-slate-950/40 rounded-xl border border-slate-800/80 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
@@ -143,7 +139,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
             />
           </div>
 
-          {/* Quick presets */}
           <div className="flex items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-1.5">
               {[1, 10, 50, 100].map((r) => (
@@ -178,7 +173,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
           </div>
         </div>
 
-        {/* Anomaly Fault Injection Panel */}
         <div className="bg-slate-950/40 rounded-xl border border-slate-800/80 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
@@ -193,7 +187,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {/* Metric Select */}
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">Target Metric</label>
               <select
@@ -210,7 +203,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
               </select>
             </div>
 
-            {/* Intensity Select */}
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">Intensity</label>
               <select
@@ -226,7 +218,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
               </select>
             </div>
 
-            {/* Duration Select */}
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">Duration</label>
               <select
@@ -255,7 +246,6 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
         </div>
       </div>
 
-      {/* Confirmation modal for Reset State */}
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
