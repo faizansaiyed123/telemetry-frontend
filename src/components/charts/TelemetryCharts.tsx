@@ -39,7 +39,6 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Chart Section Header with Tab Selection */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-cyan-400" />
@@ -99,7 +98,6 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
         </div>
       </div>
 
-      {/* Grid of charts */}
       <div
         className={`grid gap-4 ${
           activeTab === "all" ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"
@@ -191,7 +189,6 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
 
     ctx.clearRect(0, 0, w, h);
 
-    // Draw horizontal grid lines
     ctx.strokeStyle = "#1e293b";
     ctx.lineWidth = 1;
     const gridLines = 4;
@@ -203,7 +200,6 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
       ctx.stroke();
     }
 
-    // Determine scale for each dataset and draw.
     const anomalyKey = activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
     datasets.forEach((ds) => {
       if (data.length < 2) return;
@@ -230,7 +226,6 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
       });
       ctx.stroke();
 
-      // Subtle shaded area for primary line
       if (ds === datasets[0]) {
         ctx.lineTo(w, h);
         ctx.lineTo(0, h);
@@ -263,7 +258,6 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
           </div>
         </div>
 
-        {/* Legend & Current Readings */}
         <div className="flex flex-wrap gap-x-3 gap-y-1 my-2">
           {datasets.map((ds) => {
             const val = latestEvent ? latestEvent[ds.key] : null;
@@ -294,7 +288,6 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
         </div>
       </div>
 
-      {/* Canvas */}
       <div className="w-full relative mt-2 rounded-lg overflow-hidden bg-slate-950/70 border border-slate-800/50">
         <canvas
           ref={canvasRef}
