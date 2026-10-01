@@ -33,13 +33,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Calculate delta from previous value
   const delta =
     value !== null && value !== undefined && previousValue !== null && previousValue !== undefined
       ? value - previousValue
       : 0;
 
-  // Mini sparkline renderer
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || history.length < 2) return;
@@ -60,7 +58,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     const maxVal = Math.max(...history);
     const range = maxVal - minVal === 0 ? 1 : maxVal - minVal;
 
-    // Line gradient
     const strokeColor = isAnomaly
       ? "#f43f5e"
       : accentColor === "emerald"
@@ -92,7 +89,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     });
     ctx.stroke();
 
-    // Subtle area fill
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
@@ -112,7 +108,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       id={id}
       className={`relative rounded-xl border p-4 transition-all duration-200 shadow-lg flex flex-col justify-between overflow-hidden group ${colorClasses}`}
     >
-      {/* Glow on anomaly */}
       {isAnomaly && (
         <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl pointer-events-none -mr-8 -mt-8" />
       )}
@@ -136,7 +131,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           )}
         </div>
 
-        {/* Big metric reading */}
         <div className="flex items-baseline gap-1.5 my-1">
           <span className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-white">
             {formatMetricNumber(metricKey, value)}
@@ -146,7 +140,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           </span>
         </div>
 
-        {/* Delta and Trend indicator */}
         <div className="flex items-center gap-2 text-xs mb-3">
           {Math.abs(delta) > 0.01 ? (
             <span
@@ -181,7 +174,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       </div>
 
-      {/* Sparkline Canvas */}
       <div className="h-10 w-full mt-1">
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
