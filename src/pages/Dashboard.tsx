@@ -57,7 +57,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
   const { handleIncomingTelemetry, fetchStats, fetchHistory, clearStream } = telemetry;
   const { handleIncomingAlert, refresh: refreshAlerts, clearAlerts } = alerts;
 
-  // Reset callback
   const handleReset = useCallback(() => {
     clearStream();
     clearAlerts();
@@ -72,7 +71,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
   const canControlSimulation = user.role === "admin" || user.role === "operator";
   const simulationEnabled = simulation.status?.simulation_enabled ?? simulation.health?.simulation_enabled ?? false;
 
-  // Incoming WebSocket dispatcher
   const handleWsMessage = useCallback(
     (message: WebSocketMessage) => {
       if (message.type === "telemetry") {
@@ -88,7 +86,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
 
   const { status: connectionStatus, reconnect } = useWebSocket(handleWsMessage);
 
-  // Extract metric history arrays for sparklines
   const getMetricHistory = (key: keyof typeof telemetry.streamBuffer[0]) => {
     return telemetry.streamBuffer.map((d) => Number(d[key]) || 0);
   };
@@ -99,7 +96,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500/20 selection:text-cyan-300">
-      {/* Top Header */}
       <Header
         connectionStatus={connectionStatus}
         simulationStatus={simulation.status}
@@ -109,7 +105,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
         onReconnect={reconnect}
       />
 
-      {/* Global Toast Notification */}
       {simulation.notification && (
         <div className="fixed bottom-5 right-5 z-50 animate-bounce">
           <div
@@ -150,9 +145,7 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
         />
       </div>
 
-      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-        {/* Metric Cards Grid */}
         <section aria-label="Real-time Metrics">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
             <MetricCard
@@ -262,7 +255,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
           </div>
         </section>
 
-        {/* Real-time Charts & Anomaly Alerts Grid */}
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-6" aria-label="Visualizations and Alerts">
           <div className="xl:col-span-2">
             <TelemetryCharts
@@ -282,7 +274,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
           </div>
         </section>
 
-        {/* Simulation Controls & Anomaly Injection */}
         {canControlSimulation && simulationEnabled && (
           <section aria-label="Simulation Controls">
             <SimulationControls
@@ -307,7 +298,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
           </section>
         )}
 
-        {/* Statistical Overview & Historical Telemetry Log */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6" aria-label="Statistics and History">
           <StatsOverview
             stats={telemetry.stats}
@@ -323,7 +313,6 @@ export const Dashboard: React.FC<{ user: import("../types/app.js").AuthUser }> =
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-4 px-6 text-center text-xs text-slate-600">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Telemetry Control Center &bull; Real-time infrastructure observability</span>
