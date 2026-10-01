@@ -62,8 +62,7 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
       id="alerts-panel"
       className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg h-full"
     >
-      <div>
-        {/* Header */}
+      <div      >
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div
@@ -118,8 +117,6 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
             </button>
           </div>
         )}
-
-        {/* Alerts List */}
         <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
           {displayedAlerts.length === 0 ? (
             <div className="py-12 px-4 text-center rounded-xl bg-slate-950/40 border border-slate-800/60 flex flex-col items-center justify-center">
