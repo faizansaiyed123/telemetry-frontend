@@ -97,7 +97,6 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 py-3.5 transition-all">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Brand and primary status */}
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-md shadow-cyan-500/20">
             <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
@@ -117,15 +116,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Live system pills */}
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          {/* Data source */}
           <div className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs " + sourceTone}>
             <Radio className="w-3.5 h-3.5" />
             <span className="font-semibold">{sourceLabel}</span>
           </div>
 
-          {/* Rate indicator */}
           {simulationEnabled && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
               <Radio className="w-3.5 h-3.5 text-cyan-400" />
@@ -136,7 +132,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          {/* Engine State */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
             <Zap
               className={`w-3.5 h-3.5 ${
@@ -153,7 +148,6 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Active alerts count */}
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs ${
               activeAlertCount > 0
@@ -170,7 +164,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="font-semibold text-slate-200">{activeAlertCount}</span>
           </div>
 
-          {/* Uptime */}
           <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>Uptime:</span>
@@ -179,7 +172,6 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Ingestion counter */}
           {sourceMode === "agent" && (
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
               <Server className="w-3.5 h-3.5 text-emerald-400" />
@@ -188,7 +180,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          {/* Sequence info */}
           {simulationStatus?.sequence !== undefined && simulationEnabled && (
             <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
               <Server className="w-3.5 h-3.5 text-slate-400" />
@@ -197,7 +188,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          {/* Swagger / Docs link */}
           <a
             href={`${API_BASE_URL}/docs`}
             target="_blank"
@@ -211,7 +201,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Reconnection or Stale data warning banner if disconnected */}
       {connectionStatus !== "LIVE" && (
         <div className="max-w-7xl mx-auto mt-2 py-1 px-3 bg-amber-500/15 border border-amber-500/30 rounded-lg text-xs text-amber-300 flex items-center justify-between">
           <span>
