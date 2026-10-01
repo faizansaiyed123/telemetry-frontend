@@ -14,7 +14,6 @@ import {
   UserRecord,
   ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus, ChangeEvent,
   TelemetrySeriesResponse,
-  ChangeEvent,
   WebSocketTokenResponse,
   NotificationChannel,
   NotificationDelivery,
