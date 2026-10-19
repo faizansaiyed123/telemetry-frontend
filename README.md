@@ -638,3 +638,5 @@ The production frontend also exposes the backend observability control plane for
 - host-scoped live telemetry and alert context
 
 The browser E2E workflow starts the current frontend against the current backend repository state. A green frontend unit/build CI result does not by itself establish that the backend is deployment-ready; browser integration remains a separate verification gate.
+
+<!-- ChatGPT Codex direct-push test -->
