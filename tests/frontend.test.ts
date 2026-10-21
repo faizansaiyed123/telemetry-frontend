@@ -173,7 +173,6 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
       resolved: false,
     };
 
-    // First arrival
     const idx1 = alertList.findIndex((a) => a.id === alert1.id);
     if (idx1 >= 0) {
       alertList[idx1] = alert1;
@@ -183,7 +182,6 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
     assert.equal(alertList.length, 1);
     assert.equal(alertList[0].resolved, false);
 
-    // Repeated update for the same active alert
     const alert1Updated: Alert = {
       ...alert1,
       value: 92.5,
@@ -199,7 +197,6 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
     assert.equal(alertList[0].value, 92.5);
     assert.equal(alertList[0].severity, "CRITICAL");
 
-    // Resolution update
     const alert1Resolved: Alert = {
       ...alert1Updated,
       resolved: true,

@@ -96,7 +96,6 @@ export class TelemetryWebSocketService {
             this.notifyMessage(parsed);
           }
         } catch {
-          // Ignore malformed server frames.
         }
       };
 
@@ -136,8 +135,6 @@ export class TelemetryWebSocketService {
 
       if (error instanceof Error && error.message === "Connection cancelled") return;
 
-      // api.request() handles a 401 by clearing the session and redirecting.
-      // Other token/network failures are treated like transient connection errors.
       this.setStatus("ERROR");
       this.scheduleReconnect();
     }

@@ -35,7 +35,6 @@ export function useSimulation(onReset?: () => void) {
         setHealth(healthRes.value);
       }
     } catch {
-      // ignore
     }
   }, []);
 

@@ -51,7 +51,6 @@ def test_full_real_user_journey() -> None:
         page.on("pageerror", lambda exc: console_errors.append(str(exc)))
 
         try:
-            # 1) Public first-visit journey.
             print("[QA] 1. Homepage")
             page.goto(BASE_URL)
             expect(page.get_by_role("heading", level=1)).to_contain_text(
@@ -63,7 +62,6 @@ def test_full_real_user_journey() -> None:
             expect(page).to_have_url(f"{BASE_URL}/login")
             snap(page, "01-home-to-login")
 
-            # 2) Authentication and browser validation.
             print("[QA] 2. Login validation + successful authentication")
             page.get_by_label("Email").fill(ADMIN_EMAIL)
             page.get_by_role("button", name="Sign in").click()
@@ -74,7 +72,6 @@ def test_full_real_user_journey() -> None:
             login(page, ADMIN_EMAIL, ADMIN_PASSWORD)
             snap(page, "02-admin-login")
 
-            # 3) Dashboard and live telemetry.
             print("[QA] 3. Dashboard")
             for card in (
                 "card-metric-cpu",
@@ -94,7 +91,6 @@ def test_full_real_user_journey() -> None:
             expect(page.locator("#history-viewer")).to_be_visible()
             snap(page, "03-dashboard-live")
 
-            # 4) Pause/resume, rate, and reset cancellation.
             print("[QA] 4. Simulation controls")
             page.locator("#btn-play-pause").click()
             expect(page.locator("#btn-play-pause")).to_contain_text("Resume Stream", timeout=10_000)
@@ -115,7 +111,6 @@ def test_full_real_user_journey() -> None:
             page.get_by_role("button", name="10 Hz", exact=True).click()
             snap(page, "04-simulation-controls")
 
-            # 5) Trigger anomaly, alert detection, acknowledgement, persistence.
             print("[QA] 5. Anomaly -> alert lifecycle")
             page.locator("#select-anomaly-metric").select_option("cpu")
             page.locator("#select-anomaly-intensity").select_option("3.5")
@@ -127,7 +122,6 @@ def test_full_real_user_journey() -> None:
             expect(page).to_have_url(f"{BASE_URL}/app/alerts")
             page.get_by_role("checkbox").check()
             expect(page.get_by_role("checkbox")).to_be_checked()
-            # Alert generation is asynchronous; keep the user flow on the alert page.
             acknowledge_button = page.get_by_role("button", name="Acknowledge", exact=True).first
             expect(acknowledge_button).to_be_visible(timeout=25_000)
             acknowledge_button.click()
@@ -138,7 +132,6 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_text("Acknowledged", exact=True).first).to_be_visible(timeout=10_000)
             snap(page, "05-alert-lifecycle")
 
-            # 6) Analytics.
             print("[QA] 6. Analytics")
             page.get_by_role("link", name="Analytics", exact=True).click()
             expect(page).to_have_url(f"{BASE_URL}/app/analytics")
@@ -146,7 +139,6 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_text("Stored samples", exact=True)).to_be_visible()
             snap(page, "06-analytics")
 
-            # 7) Hosts CRUD and persistence-sensitive operations.
             print("[QA] 7. Hosts")
             page.get_by_role("link", name="Hosts", exact=True).click()
             expect(page.get_by_role("button", name="Add host")).to_be_visible()
@@ -174,7 +166,6 @@ def test_full_real_user_journey() -> None:
             expect(page.get_by_text(f"{host_name}-updated", exact=True)).to_have_count(0, timeout=10_000)
             snap(page, "07-hosts")
 
-            # 8) Admin creates accounts.
             print("[QA] 8. Administration")
             page.get_by_role("link", name="Administration", exact=True).click()
             expect(page.get_by_role("heading", level=1)).to_contain_text("Access management")
@@ -214,7 +205,6 @@ def test_full_real_user_journey() -> None:
             expect(current_row.get_by_role("button", name="Deactivate (current)", exact=True)).to_be_disabled()
             snap(page, "08-administration")
 
-            # 9) Viewer: read-only UX plus backend authorization.
             print("[QA] 9. Viewer")
             viewer_ctx = browser.new_context(viewport={"width": 1440, "height": 1000})
             viewer = viewer_ctx.new_page()
@@ -242,7 +232,6 @@ def test_full_real_user_journey() -> None:
             viewer.close()
             viewer_ctx.close()
 
-            # 10) Operator: control simulation but no host/user administration.
             print("[QA] 10. Operator")
             operator_ctx = browser.new_context(viewport={"width": 1440, "height": 1000})
             operator = operator_ctx.new_page()
@@ -256,7 +245,6 @@ def test_full_real_user_journey() -> None:
             operator.close()
             operator_ctx.close()
 
-            # 11) Admin2 disables the original admin; original session must become unauthorized.
             print("[QA] 11. Cross-session deactivation")
             admin2_ctx = browser.new_context(viewport={"width": 1440, "height": 1000})
             admin2 = admin2_ctx.new_page()
@@ -275,7 +263,6 @@ def test_full_real_user_journey() -> None:
             admin2.close()
             admin2_ctx.close()
 
-            # 12) Additional production surfaces.
             print("[QA] 12) Notifications, synthetic monitoring, services and topology")
             page.get_by_role("link", name="Operations", exact=True).click()
             expect(page.get_by_text("Realtime fan-out", exact=True)).to_be_visible()
@@ -290,7 +277,6 @@ def test_full_real_user_journey() -> None:
             page.get_by_role("button", name="Dependency topology", exact=True).click()
             expect(page.get_by_text("No topology nodes yet", exact=True)).to_be_visible(timeout=10_000)
 
-            # 13) Settings password change + logout/direct URL guard.
             print("[QA] 12. Settings + logout")
             login(page, ADMIN_EMAIL, ADMIN_PASSWORD)
             page.get_by_role("link", name="Settings", exact=True).click()
@@ -306,11 +292,9 @@ def test_full_real_user_journey() -> None:
             page.goto(f"{BASE_URL}/app")
             expect(page).to_have_url(f"{BASE_URL}/login", timeout=10_000)
 
-            # New password works.
             login(page, ADMIN_EMAIL, "QaAdminNew!12345")
             snap(page, "12-settings-logout")
 
-            # 13) Responsive/mobile navigation.
             print("[QA] 13. Mobile navigation")
             mobile_ctx = browser.new_context(viewport={"width": 390, "height": 844})
             mobile = mobile_ctx.new_page()
@@ -323,12 +307,8 @@ def test_full_real_user_journey() -> None:
             mobile.close()
             mobile_ctx.close()
 
-            # 15) Final browser health signal.
             print("[QA] 14. Console health")
             expected_auth_resource_error = "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
-            # The cross-session deactivation scenario intentionally expires the original
-            # session and therefore emits two browser-level 401 resource messages.
-            # Keep the allowlist exact so unrelated console errors still fail QA.
             bad = [
                 message for message in console_errors
                 if "favicon" not in message.lower()
