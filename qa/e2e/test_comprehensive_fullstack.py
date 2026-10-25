@@ -364,7 +364,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("What changed and why?").fill("Real browser QA deployment marker")
             page.get_by_placeholder("Release / ticket / commit reference").fill("qa-" + suffix)
             page.get_by_role("button", name="Record change", exact=True).click()
-            expect(page.get_by_text(change_title, exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_role("heading", name=change_title, exact=True).first).to_be_visible(timeout=10_000)
             status, changes = api_json(page, "GET", "/api/changes")
             assert status == 200 and any(c["title"] == change_title for c in changes)
             snap(page, "07-changes")
