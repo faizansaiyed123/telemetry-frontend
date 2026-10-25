@@ -314,9 +314,8 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             rule = next(r for r in rules if r["name"] == rule_name)
             rule_row = action_row(page, rule_name, "Edit")
             rule_row.get_by_role("button", name="Edit", exact=True).click()
-            rule_edit_row = page.locator("div.px-5.py-5").filter(has=page.get_by_text(rule_name, exact=True)).first
-            rule_edit_row.locator('input[type="number"]').nth(1).fill("3")
-            rule_edit_row.get_by_role("button", name="Save changes", exact=True).click()
+            rule_row.locator('input[type="number"]').nth(1).fill("3")
+            rule_row.get_by_role("button", name="Save changes", exact=True).click()
             status, rules = api_json(page, "GET", "/api/alert-rules")
             assert status == 200
             assert next(r for r in rules if r["id"] == rule["id"])["duration_seconds"] == 3
