@@ -370,6 +370,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             snap(page, "07-changes")
 
             print("[QA] 09. SLO CRUD and live status")
+            # Exercises the backend SLO update/delete race fixed on the QA backend branch.
             page.get_by_role("link", name="SLOs", exact=True).click()
             expect(page.get_by_role("heading", level=1)).to_contain_text("Service objectives")
             page.get_by_placeholder("99% latency objective").fill(slo_name)
