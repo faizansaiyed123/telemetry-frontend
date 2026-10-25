@@ -572,6 +572,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             expect(page.get_by_text("Password reset successfully.", exact=True)).to_be_visible(timeout=10_000)
             current_admin_row = action_row(page, ADMIN_EMAIL, "Deactivate")
             expect(current_admin_row.get_by_role("button", name=re.compile("Deactivate")).first).to_be_disabled()
+            snap(page, "14-administration")
 
             print("[QA] 15. Viewer permissions are enforced in UI and API")
             viewer_ctx = browser.new_context(viewport={"width": 1440, "height": 1000})
