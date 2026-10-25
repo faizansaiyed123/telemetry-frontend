@@ -36,39 +36,44 @@ def login(page: Page, email: str, password: str) -> None:
     expect(page.get_by_text("LIVE", exact=True)).to_be_visible(timeout=15_000)
 
 
-def api_json(page: Page, method: str, path: str, payload=None) -> tuple[int, object]:
+_UNSET = object()
+
+
+def api_json(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int, object]:
+    has_payload = payload is not _UNSET
     return page.evaluate(
-        """async ({apiUrl, method, path, payload}) => {
+        """async ({apiUrl, method, path, hasPayload, payload}) => {
           const token = localStorage.getItem("telemetry_access_token");
           const response = await fetch(apiUrl + path, {
             method,
             headers: {
-              ...(payload === undefined ? {} : {"Content-Type": "application/json"}),
+              ...(hasPayload ? {"Content-Type": "application/json"} : {}),
               Authorization: "Bearer " + token,
             },
-            body: payload === undefined ? undefined : JSON.stringify(payload),
+            body: hasPayload ? JSON.stringify(payload) : undefined,
           });
           let body = null;
           try { body = await response.json(); } catch { body = await response.text(); }
           return [response.status, body];
         }""",
-        {"apiUrl": API_URL, "method": method, "path": path, "payload": payload},
+        {"apiUrl": API_URL, "method": method, "path": path, "hasPayload": has_payload, "payload": None if not has_payload else payload},
     )
 
 
-def api_public(page: Page, method: str, path: str, payload=None) -> tuple[int, object]:
+def api_public(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int, object]:
+    has_payload = payload is not _UNSET
     return page.evaluate(
-        """async ({apiUrl, method, path, payload}) => {
+        """async ({apiUrl, method, path, hasPayload, payload}) => {
           const response = await fetch(apiUrl + path, {
             method,
-            headers: payload === undefined ? {} : {"Content-Type": "application/json"},
-            body: payload === undefined ? undefined : JSON.stringify(payload),
+            headers: hasPayload ? {"Content-Type": "application/json"} : {},
+            body: hasPayload ? JSON.stringify(payload) : undefined,
           });
           let body = null;
           try { body = await response.json(); } catch { body = await response.text(); }
           return [response.status, body];
         }""",
-        {"apiUrl": API_URL, "method": method, "path": path, "payload": payload},
+        {"apiUrl": API_URL, "method": method, "path": path, "hasPayload": has_payload, "payload": None if not has_payload else payload},
     )
 
 
@@ -352,7 +357,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             check_row = row_containing(page, synthetic_name)
             check_row.click()
             page.get_by_role("button", name="Run now", exact=True).click()
-            expect(page.get_by_text(re.compile("Synthetic check (passed|failed)\.")).first).to_be_visible(timeout=20_000)
+            expect(page.get_by_text(re.compile(r"Synthetic check (passed|failed)\.")).first).to_be_visible(timeout=20_000)
             status, checks = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200
             check = next(c for c in checks if c["name"] == synthetic_name)
