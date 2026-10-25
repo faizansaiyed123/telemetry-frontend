@@ -14,9 +14,13 @@ concurrency:
 
 jobs:
   browser:
-    name: End-to-end browser journey
+    name: End-to-end browser journey (${{ matrix.suite }})
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [comprehensive, regression]
 
     services:
       postgres:
@@ -133,13 +137,18 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: Run real-user browser journey
-        run: pytest -q qa/e2e/test_comprehensive_fullstack.py qa/e2e/test_full_application.py -m e2e
+        run: |
+          if [ "${{ matrix.suite }}" = "comprehensive" ]; then
+            pytest -q qa/e2e/test_comprehensive_fullstack.py -m e2e
+          else
+            pytest -q qa/e2e/test_full_application.py -m e2e
+          fi
 
       - name: Upload browser artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-qa-artifacts
+          name: browser-qa-artifacts-${{ matrix.suite }}
           path: |
             qa-artifacts/
             frontend.log
