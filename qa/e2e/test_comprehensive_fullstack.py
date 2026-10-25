@@ -531,7 +531,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, keys_after = api_json(page, "GET", "/api/api-keys")
             assert status == 200 and next(k for k in keys_after if k["id"] == key["id"])["revoked_at"] is not None
             page.get_by_role("button", name="Audit log", exact=True).click()
-            expect(page.get_by_text("Audit", exact=True).first).to_be_visible(timeout=10_000)
+            expect(page.get_by_text("Audit trail", exact=True)).to_be_visible(timeout=10_000)
             status, audits = api_json(page, "GET", "/api/observability/audit-logs?limit=50")
             assert status == 200 and len(audits) > 0
             snap(page, "12-operations")
