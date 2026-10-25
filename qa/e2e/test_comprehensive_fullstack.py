@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import json
 import os
 import threading
@@ -413,7 +415,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, platform = api_json(page, "GET", "/api/observability/metrics")
             assert status == 200 and "counters" in platform
             page.get_by_role("button", name="Agent access", exact=True).click()
-            page.get_by_placeholder("Agent key name").fill("browser-qa-" + suffix)
+            page.get_by_placeholder("Windows telemetry agent").fill("browser-qa-" + suffix)
             page.get_by_role("button", name="Create key", exact=True).click()
             expect(page.get_by_text("New agent secret", exact=True)).to_be_visible(timeout=10_000)
             secret = page.locator("div.font-mono").filter(has_text="tlm_").last.inner_text()
