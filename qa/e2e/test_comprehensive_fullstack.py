@@ -638,6 +638,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             mobile.locator("div.h-16 button").first.click()
             expect(mobile.get_by_role("link", name="Overview", exact=True)).to_be_visible()
             expect(mobile.get_by_role("link", name="Administration", exact=True)).to_be_visible()
+            snap(mobile, "17-mobile-navigation")
             mobile.close()
             mobile_ctx.close()
 
