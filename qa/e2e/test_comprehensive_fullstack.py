@@ -95,15 +95,15 @@ def api_public(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int,
     )
 
 
-def row_containing(page: Page, text_value: str):
+def action_row(page: Page, text_value: str, button_name: str):
     matches = page.get_by_text(text_value, exact=True)
     for i in range(matches.count()):
         node = matches.nth(i)
-        for depth in range(1, 8):
+        for depth in range(1, 9):
             container = node.locator("xpath=" + "/.." * depth)
-            if container.get_by_role("button").count() > 0:
+            if container.get_by_role("button", name=button_name, exact=True).count() > 0:
                 return container
-    raise AssertionError(f"Could not locate an actionable row containing {text_value!r}")
+    raise AssertionError(f"Could not locate an actionable row containing {text_value!r} with button {button_name!r}")
 
 
 class WebhookCapture(BaseHTTPRequestHandler):
@@ -246,15 +246,15 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             created_host = next(h for h in hosts if h["name"] == host_name)
             host_id = created_host["id"]
 
-            row = row_containing(page, host_name)
+            row = action_row(page, host_name, "Edit")
             row.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_label("Host name").fill(host_name + "-updated")
             page.get_by_label("Host environment").fill("staging")
             page.get_by_role("button", name="Save", exact=True).click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_be_visible(timeout=10_000)
 
-            row = row_containing(page, host_name + "-updated")
-            row.get_by_role("button", name=re.compile("Deactivate|Activate")).click()
+            row = action_row(page, host_name + "-updated", "Deactivate")
+            row.get_by_role("button", name="Deactivate", exact=True).click()
             expect(row.get_by_text("Inactive", exact=True).last).to_be_visible(timeout=10_000)
             status, hosts_after_toggle = api_json(page, "GET", "/api/hosts")
             assert status == 200
@@ -290,7 +290,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert status == 200 and any(item["sequence"] == event["sequence"] and item["source"] == "agent" for item in history["events"])
             page.get_by_role("link", name="Hosts", exact=True).click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_be_visible(timeout=10_000)
-            row = row_containing(page, host_name + "-updated")
+            row = action_row(page, host_name + "-updated", "Delete")
             page.once("dialog", lambda dialog: dialog.accept())
             row.get_by_role("button", name="Delete", exact=True).click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_have_count(0, timeout=10_000)
@@ -311,17 +311,19 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, rules = api_json(page, "GET", "/api/alert-rules")
             assert status == 200
             rule = next(r for r in rules if r["name"] == rule_name)
-            rule_row = row_containing(page, rule_name)
+            rule_row = action_row(page, rule_name, "Edit")
             rule_row.get_by_role("button", name="Edit", exact=True).click()
             rule_row.get_by_placeholder("Duration seconds").fill("3")
             rule_row.get_by_role("button", name="Save changes", exact=True).click()
             status, rules = api_json(page, "GET", "/api/alert-rules")
             assert status == 200
             assert next(r for r in rules if r["id"] == rule["id"])["duration_seconds"] == 3
-            rule_row = row_containing(page, rule_name)
-            rule_row.get_by_role("button", name=re.compile("Pause|Enable")).click()
-            rule_row.get_by_role("button", name=re.compile("Enable|Pause")).click()
+            rule_row = action_row(page, rule_name, "Pause")
+            rule_row.get_by_role("button", name="Pause", exact=True).click()
+            rule_row = action_row(page, rule_name, "Enable")
+            rule_row.get_by_role("button", name="Enable", exact=True).click()
             page.once("dialog", lambda dialog: dialog.accept())
+            rule_row = action_row(page, rule_name, "Delete")
             rule_row.get_by_role("button", name="Delete", exact=True).click()
             status, rules = api_json(page, "GET", "/api/alert-rules")
             assert status == 200 and all(r["id"] != rule["id"] for r in rules)
@@ -375,14 +377,16 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             slo = next(s for s in slos if s["name"] == slo_name)
             status, slo_status = api_json(page, "GET", f"/api/slos/{slo['id']}/status")
             assert status == 200 and "compliant" in slo_status
-            slo_card = row_containing(page, slo_name)
+            slo_card = action_row(page, slo_name, "Edit")
             slo_card.get_by_role("button", name="Edit", exact=True).click()
             slo_card.get_by_role("button", name="Save changes", exact=True).click()
             status, updated_slos = api_json(page, "GET", "/api/slos")
             assert status == 200 and next(s for s in updated_slos if s["id"] == slo["id"])["name"] == slo_name
-            slo_card.get_by_role("button", name=re.compile("Pause|Enable")).click()
+            slo_card = action_row(page, slo_name, "Pause")
+            slo_card.get_by_role("button", name="Pause", exact=True).click()
             page.once("dialog", lambda dialog: dialog.accept())
-            slo_card.get_by_role("button", name=re.compile("Delete")).click()
+            slo_card = action_row(page, slo_name, "Delete")
+            slo_card.get_by_role("button", name="Delete", exact=True).click()
             status, updated_slos = api_json(page, "GET", "/api/slos")
             assert status == 200 and all(s["id"] != slo["id"] for s in updated_slos)
             snap(page, "08-slos")
@@ -394,7 +398,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("https://ops.example.com/webhook").fill("http://127.0.0.1:8787/webhook")
             page.get_by_role("button", name="Create channel", exact=True).click()
             expect(page.get_by_text(channel_name, exact=True)).to_be_visible(timeout=10_000)
-            channel_row = row_containing(page, channel_name)
+            channel_row = action_row(page, channel_name, "Send test")
             channel_row.get_by_role("button", name="Send test", exact=True).click()
             expect(page.get_by_text("Test delivery queued:", exact=False)).to_be_visible(timeout=10_000)
             for _ in range(20):
@@ -408,12 +412,15 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert received["headers"].get("X-Telemetry-Event")
             status, deliveries = api_json(page, "GET", "/api/notification-channels/deliveries?limit=50")
             assert status == 200 and any(d["channel_id"] for d in deliveries)
+            channel_row = action_row(page, channel_name, "Edit")
             channel_row.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_role("button", name="Save changes", exact=True).click()
-            channel_row = row_containing(page, channel_name)
+            channel_row = action_row(page, channel_name, "Pause")
             channel_row.get_by_role("button", name="Pause", exact=True).click()
+            channel_row = action_row(page, channel_name, "Enable")
             channel_row.get_by_role("button", name="Enable", exact=True).click()
             page.once("dialog", lambda dialog: dialog.accept())
+            channel_row = action_row(page, channel_name, "Delete")
             channel_row.get_by_role("button", name="Delete", exact=True).click()
             status, channels_after = api_json(page, "GET", "/api/notification-channels")
             assert status == 200 and all(c["name"] != channel_name for c in channels_after)
@@ -426,7 +433,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("https://example.com/health").fill("https://example.com/")
             page.get_by_role("button", name="Create check", exact=True).click()
             expect(page.get_by_text(synthetic_name, exact=True)).to_be_visible(timeout=10_000)
-            check_row = row_containing(page, synthetic_name)
+            check_row = action_row(page, synthetic_name, "Run now")
             check_row.click()
             page.get_by_role("button", name="Run now", exact=True).click()
             expect(page.get_by_text(re.compile(r"Synthetic check (passed|failed)\.")).first).to_be_visible(timeout=20_000)
@@ -435,12 +442,15 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             check = next(c for c in checks if c["name"] == synthetic_name)
             status, runs = api_json(page, "GET", f"/api/synthetic-checks/{check['id']}/runs")
             assert status == 200 and len(runs["runs"]) >= 1
+            check_row = action_row(page, synthetic_name, "Edit")
             check_row.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_role("button", name="Save changes", exact=True).click()
-            check_row = row_containing(page, synthetic_name)
+            check_row = action_row(page, synthetic_name, "Pause")
             check_row.get_by_role("button", name="Pause", exact=True).click()
+            check_row = action_row(page, synthetic_name, "Enable")
             check_row.get_by_role("button", name="Enable", exact=True).click()
             page.once("dialog", lambda dialog: dialog.accept())
+            check_row = action_row(page, synthetic_name, "Delete")
             check_row.get_by_role("button", name="Delete", exact=True).click()
             status, checks_after = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200 and all(c["id"] != check["id"] for c in checks_after)
@@ -500,7 +510,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, keys = api_json(page, "GET", "/api/api-keys")
             assert status == 200 and all("secret" not in k for k in keys)
             key = next(k for k in keys if k["name"] == "browser-qa-" + suffix)
-            key_row = row_containing(page, key["name"])
+            key_row = action_row(page, key["name"], "Revoke")
             page.once("dialog", lambda dialog: dialog.accept())
             key_row.get_by_role("button", name=re.compile("Revoke")).click()
             status, keys_after = api_json(page, "GET", "/api/api-keys")
@@ -527,7 +537,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
                 expect(page.get_by_text(email, exact=True)).to_be_visible(timeout=10_000)
             status, users = api_json(page, "GET", "/api/users")
             assert status == 200 and any(u["email"] == viewer_email for u in users)
-            viewer_row = row_containing(page, viewer_email)
+            viewer_row = action_row(page, viewer_email, "Role")
             viewer_row.get_by_role("button", name="Role", exact=True).click()
             viewer_row.get_by_role("combobox").last.select_option("operator")
             viewer_row.get_by_role("button", name="Save", exact=True).click()
@@ -539,7 +549,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("New password, minimum 8 characters").fill("ViewerNew!12345")
             viewer_row.get_by_role("button", name="Reset", exact=True).click()
             expect(page.get_by_text("Password reset successfully.", exact=True)).to_be_visible(timeout=10_000)
-            current_admin_row = row_containing(page, ADMIN_EMAIL)
+            current_admin_row = action_row(page, ADMIN_EMAIL, "Deactivate")
             expect(current_admin_row.get_by_role("button", name=re.compile("Deactivate")).first).to_be_disabled()
 
             print("[QA] 15. Viewer permissions are enforced in UI and API")
@@ -575,7 +585,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             admin2 = admin2_ctx.new_page()
             login(admin2, second_admin_email, "AdminTwo!12345")
             admin2.get_by_role("link", name="Administration", exact=True).click()
-            row = row_containing(admin2, ADMIN_EMAIL)
+            row = action_row(admin2, ADMIN_EMAIL, "Deactivate")
             row.get_by_role("button", name="Deactivate", exact=True).first.click()
             expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
             page.goto(f"{BASE_URL}/app")
@@ -640,8 +650,3 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             receiver.shutdown()
             receiver.server_close()
 
-
-# Imported only after definitions above so type-checkers do not need it at module load.
-from re import compile as re_compile  # noqa: E402
-import re  # noqa: E402
-re = re
