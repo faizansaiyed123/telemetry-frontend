@@ -476,10 +476,10 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("Telemetry API").fill(service_a)
             page.get_by_placeholder("Primary API service").fill("QA API service")
             page.get_by_role("button", name="Register service", exact=True).click()
-            expect(page.get_by_text(service_a, exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_role("button", name=re.compile(re.escape(service_a) + r" production")).first).to_be_visible(timeout=10_000)
             page.get_by_placeholder("Telemetry API").fill(service_b)
             page.get_by_role("button", name="Register service", exact=True).click()
-            expect(page.get_by_text(service_b, exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_role("button", name=re.compile(re.escape(service_b) + r" production")).first).to_be_visible(timeout=10_000)
             status, services = api_json(page, "GET", "/api/services")
             assert status == 200
             a = next(s for s in services if s["name"] == service_a)
