@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 
+from datetime import datetime, timezone
+
 import json
 import os
 import threading
@@ -270,7 +272,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             secret = page.locator("div.font-mono").filter(has_text="tlm_").last.inner_text()
             assert secret.startswith("tlm_")
             event = {
-                "timestamp": new Date().toISOString(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "sequence": 900000 + int(suffix[-4:], 16),
                 "cpu": 47.0,
                 "memory": 52.0,
