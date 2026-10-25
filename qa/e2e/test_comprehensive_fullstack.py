@@ -606,8 +606,8 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             admin2 = admin2_ctx.new_page()
             login(admin2, second_admin_email, "AdminTwo!12345")
             admin2.get_by_role("link", name="Administration", exact=True).click()
-            row = action_row(admin2, ADMIN_EMAIL, "Deactivate")
-            row.get_by_role("button", name="Deactivate", exact=True).first.click()
+            row = admin2.locator("div.px-5.py-5").filter(has_text=ADMIN_EMAIL).first
+            row.get_by_role("button", name="Deactivate", exact=True).click()
             expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
             page.goto(f"{BASE_URL}/app")
             expect(page).to_have_url(f"{BASE_URL}/login", timeout=15_000)
