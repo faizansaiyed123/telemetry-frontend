@@ -452,19 +452,19 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, checks_after_edit = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200 and next(c for c in checks_after_edit if c["id"] == check["id"])["name"] == synthetic_name
             page.get_by_role("button", name="Edit", exact=True).click()
-            edit_check_row = page.locator("div.px-5.py-5").filter(has=page.get_by_role("button", name="Save changes", exact=True)).first
-            enabled_box = edit_check_row.get_by_role("checkbox", name="Enabled").first
+            edit_check_form = page.locator("section").filter(has_text="Edit synthetic check").first
+            enabled_box = edit_check_form.get_by_role("checkbox", name="Enabled").first
             if enabled_box.is_checked():
                 enabled_box.uncheck()
-            edit_check_row.get_by_role("button", name="Save changes", exact=True).click()
+            page.get_by_role("button", name="Save changes", exact=True).click()
             status, checks_paused = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200 and next(c for c in checks_paused if c["id"] == check["id"])["enabled"] is False
             page.get_by_role("button", name="Edit", exact=True).click()
-            edit_check_row = page.locator("div.px-5.py-5").filter(has=page.get_by_role("button", name="Save changes", exact=True)).first
-            enabled_box = edit_check_row.get_by_role("checkbox", name="Enabled").first
+            edit_check_form = page.locator("section").filter(has_text="Edit synthetic check").first
+            enabled_box = edit_check_form.get_by_role("checkbox", name="Enabled").first
             if not enabled_box.is_checked():
                 enabled_box.check()
-            edit_check_row.get_by_role("button", name="Save changes", exact=True).click()
+            page.get_by_role("button", name="Save changes", exact=True).click()
             status, checks_enabled = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200 and next(c for c in checks_enabled if c["id"] == check["id"])["enabled"] is True
             status, delete_body = api_json(page, "DELETE", f"/api/synthetic-checks/{check['id']}")
