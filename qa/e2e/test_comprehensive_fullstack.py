@@ -54,8 +54,9 @@ def api_json(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int, o
             },
             body: hasPayload ? JSON.stringify(payload) : undefined,
           });
+          const raw = await response.text();
           let body = null;
-          try { body = await response.json(); } catch { body = await response.text(); }
+          try { body = raw ? JSON.parse(raw) : null; } catch { body = raw; }
           return [response.status, body];
         }""",
         {"apiUrl": API_URL, "method": method, "path": path, "hasPayload": has_payload, "payload": None if not has_payload else payload},
