@@ -619,6 +619,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
 
             print("[QA] 18. Settings password change and re-login")
             page.get_by_role("link", name="Settings", exact=True).click()
+            snap(page, "16-settings")
             page.get_by_placeholder("Current password").fill(ADMIN_PASSWORD)
             page.get_by_role("textbox", name="New password", exact=True).fill(new_admin_password)
             page.get_by_placeholder("Confirm new password").fill(new_admin_password)
