@@ -567,7 +567,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             viewer_row = action_row(page, viewer_email, "Reset password")
             viewer_row.get_by_role("button", name="Reset password", exact=True).click()
             page.get_by_placeholder("New password, minimum 8 characters").fill("ViewerNew!12345")
-            viewer_row.get_by_role("button", name="Reset", exact=True).click()
+            page.get_by_role("button", name="Reset", exact=True).click()
             expect(page.get_by_text("Password reset successfully.", exact=True)).to_be_visible(timeout=10_000)
             current_admin_row = action_row(page, ADMIN_EMAIL, "Deactivate")
             expect(current_admin_row.get_by_role("button", name=re.compile("Deactivate")).first).to_be_disabled()
