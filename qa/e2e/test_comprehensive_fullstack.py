@@ -290,9 +290,10 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert status == 200 and any(item["sequence"] == event["sequence"] and item["source"] == "agent" for item in history["events"])
             page.get_by_role("link", name="Hosts", exact=True).click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_be_visible(timeout=10_000)
-            row = action_row(page, host_name + "-updated", "Delete")
+            host_row = page.locator("div.px-5.py-5").filter(has=page.get_by_text(host_name + "-updated", exact=True)).first
+            expect(host_row.get_by_text(host_name + "-updated", exact=True)).to_be_visible(timeout=10_000)
             page.once("dialog", lambda dialog: dialog.accept())
-            row.get_by_role("button", name="Delete", exact=True).click()
+            host_row.get_by_title("Delete host").click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_have_count(0, timeout=10_000)
             status, hosts_after_delete = api_json(page, "GET", "/api/hosts")
             assert status == 200
