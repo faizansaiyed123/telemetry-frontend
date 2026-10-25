@@ -289,6 +289,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             status, history = api_json(page, "GET", f"/api/telemetry/history?host_id={host_id}&limit=50")
             assert status == 200 and any(item["sequence"] == event["sequence"] and item["source"] == "agent" for item in history["events"])
             page.get_by_role("link", name="Hosts", exact=True).click()
+            expect(page.get_by_text(host_name + "-updated", exact=True)).to_be_visible(timeout=10_000)
             row = row_containing(page, host_name + "-updated")
             page.once("dialog", lambda dialog: dialog.accept())
             row.get_by_role("button", name="Delete", exact=True).click()
