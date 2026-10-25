@@ -60,6 +60,22 @@ def api_json(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int, o
     )
 
 
+def api_ingest(page: Page, secret: str, path: str, payload: object) -> tuple[int, object]:
+    return page.evaluate(
+        """async ({apiUrl, secret, path, payload}) => {
+          const response = await fetch(apiUrl + path, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-Telemetry-Key": secret},
+            body: JSON.stringify(payload),
+          });
+          let body = null;
+          try { body = await response.json(); } catch { body = await response.text(); }
+          return [response.status, body];
+        }""",
+        {"apiUrl": API_URL, "secret": secret, "path": path, "payload": payload},
+    )
+
+
 def api_public(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int, object]:
     has_payload = payload is not _UNSET
     return page.evaluate(
@@ -134,6 +150,8 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
         change_title = f"QA deployment {suffix}"
         synthetic_name = f"QA synthetic {suffix}"
         channel_name = f"QA webhook {suffix}"
+        signup_email = f"qa-signup-{suffix}@example.com"
+        signup_password = f"Signup!{suffix}12345"
 
         try:
             print("[QA] 01. Public entry + authentication validation")
@@ -141,6 +159,22 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             expect(page.get_by_role("heading", level=1)).to_contain_text("Know what your infrastructure is doing")
             snap(page, "00-home")
 
+            page.get_by_role("link", name="Create account").first.click()
+            expect(page).to_have_url(f"{BASE_URL}/signup")
+            page.get_by_label("Email").fill(signup_email)
+            page.get_by_placeholder("Minimum 8 characters").fill(signup_password)
+            page.get_by_placeholder("Re-enter your password").fill("Mismatch!123456")
+            page.get_by_role("button", name="Create account", exact=True).click()
+            expect(page.get_by_role("alert")).to_contain_text("Passwords do not match")
+            page.get_by_placeholder("Re-enter your password").fill(signup_password)
+            page.get_by_role("button", name="Create account", exact=True).click()
+            expect(page).to_have_url(f"{BASE_URL}/app", timeout=15_000)
+            status, signup_me = api_json(page, "GET", "/api/auth/me")
+            assert status == 200 and signup_me["email"] == signup_email and signup_me["role"] == "viewer"
+            snap(page, "01-signup")
+            page.get_by_role("button", name="Sign out", exact=True).click()
+            expect(page).to_have_url(BASE_URL + "/")
+            
             page.get_by_role("link", name="Sign in").first.click()
             expect(page).to_have_url(f"{BASE_URL}/login")
             page.get_by_label("Email").fill(ADMIN_EMAIL)
@@ -226,6 +260,34 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert toggled["is_active"] is False
             row.get_by_role("button", name="Activate", exact=True).click()
             expect(row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
+
+            page.get_by_role("link", name="Operations", exact=True).click()
+            page.get_by_role("button", name="Agent access", exact=True).click()
+            page.locator("select").first.select_option(host_id)
+            page.get_by_placeholder("Windows telemetry agent").fill("browser-ingest-" + suffix)
+            page.get_by_role("button", name="Create key", exact=True).click()
+            expect(page.get_by_text("New agent secret", exact=True)).to_be_visible(timeout=10_000)
+            secret = page.locator("div.font-mono").filter(has_text="tlm_").last.inner_text()
+            assert secret.startswith("tlm_")
+            event = {
+                "timestamp": new Date().toISOString(),
+                "sequence": 900000 + int(suffix[-4:], 16),
+                "cpu": 47.0,
+                "memory": 52.0,
+                "temperature": 61.0,
+                "network_mbps": 12.5,
+                "requests_per_second": 42.0,
+                "error_rate": 0.2,
+                "latency_ms": 86.0,
+            }
+            status, ingest = api_ingest(page, secret, "/api/ingest/v1/telemetry", {"events": [event], "agent_version": "qa-browser"})
+            assert status == 200 and ingest["accepted"] == 1 and ingest["deduplicated"] == 0
+            status, duplicate = api_ingest(page, secret, "/api/ingest/v1/telemetry", {"events": [event], "agent_version": "qa-browser"})
+            assert status == 200 and duplicate["accepted"] == 0 and duplicate["deduplicated"] == 1
+            status, history = api_json(page, "GET", f"/api/telemetry/history?host_id={host_id}&limit=50")
+            assert status == 200 and any(item["sequence"] == event["sequence"] and item["source"] == "agent" for item in history["events"])
+            page.get_by_role("link", name="Hosts", exact=True).click()
+            row = row_containing(page, host_name + "-updated")
             page.once("dialog", lambda dialog: dialog.accept())
             row.get_by_role("button", name="Delete", exact=True).click()
             expect(page.get_by_text(host_name + "-updated", exact=True)).to_have_count(0, timeout=10_000)
