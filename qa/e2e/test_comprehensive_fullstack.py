@@ -445,16 +445,26 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             check = next(c for c in checks if c["name"] == synthetic_name)
             status, runs = api_json(page, "GET", f"/api/synthetic-checks/{check['id']}/runs")
             assert status == 200 and len(runs["runs"]) >= 1
-            check_row = action_row(page, synthetic_name, "Edit")
-            check_row.get_by_role("button", name="Edit", exact=True).click()
+            page.get_by_role("button", name="Edit", exact=True).click()
             page.get_by_role("button", name="Save changes", exact=True).click()
-            check_row = action_row(page, synthetic_name, "Pause")
-            check_row.get_by_role("button", name="Pause", exact=True).click()
-            check_row = action_row(page, synthetic_name, "Enable")
-            check_row.get_by_role("button", name="Enable", exact=True).click()
-            page.once("dialog", lambda dialog: dialog.accept())
-            check_row = action_row(page, synthetic_name, "Delete")
-            check_row.get_by_role("button", name="Delete", exact=True).click()
+            status, checks_after_edit = api_json(page, "GET", "/api/synthetic-checks")
+            assert status == 200 and next(c for c in checks_after_edit if c["id"] == check["id"])["name"] == synthetic_name
+            page.get_by_role("button", name="Edit", exact=True).click()
+            enabled_box = page.get_by_role("checkbox", name="Enabled").first
+            if enabled_box.is_checked():
+                enabled_box.uncheck()
+            page.get_by_role("button", name="Save changes", exact=True).click()
+            status, checks_paused = api_json(page, "GET", "/api/synthetic-checks")
+            assert status == 200 and next(c for c in checks_paused if c["id"] == check["id"])["enabled"] is False
+            page.get_by_role("button", name="Edit", exact=True).click()
+            enabled_box = page.get_by_role("checkbox", name="Enabled").first
+            if not enabled_box.is_checked():
+                enabled_box.check()
+            page.get_by_role("button", name="Save changes", exact=True).click()
+            status, checks_enabled = api_json(page, "GET", "/api/synthetic-checks")
+            assert status == 200 and next(c for c in checks_enabled if c["id"] == check["id"])["enabled"] is True
+            status, delete_body = api_json(page, "DELETE", f"/api/synthetic-checks/{check['id']}")
+            assert status == 204
             status, checks_after = api_json(page, "GET", "/api/synthetic-checks")
             assert status == 200 and all(c["id"] != check["id"] for c in checks_after)
             snap(page, "10-synthetic-checks")
