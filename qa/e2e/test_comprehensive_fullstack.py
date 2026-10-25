@@ -566,6 +566,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
                 page.close()
                 admin_ctx.close()
                 browser.close()
+            raise
         else:
             page.close()
             admin_ctx.close()
