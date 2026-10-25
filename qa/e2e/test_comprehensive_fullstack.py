@@ -435,7 +435,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("API health").fill(synthetic_name)
             page.get_by_placeholder("https://example.com/health").fill("https://example.com/")
             page.get_by_role("button", name="Create check", exact=True).click()
-            expect(page.get_by_text(synthetic_name, exact=True)).to_be_visible(timeout=10_000)
+            expect(page.get_by_role("button", name=re.compile(re.escape(synthetic_name) + r" Enabled")).first).to_be_visible(timeout=10_000)
             check_row = action_row(page, synthetic_name, "Run now")
             check_row.click()
             page.get_by_role("button", name="Run now", exact=True).click()
