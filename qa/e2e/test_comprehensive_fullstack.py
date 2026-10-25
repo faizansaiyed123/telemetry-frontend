@@ -498,7 +498,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_role("button", name="Dependency topology", exact=True).click()
             expect(page.get_by_role("img", name="Service dependency topology")).to_be_visible(timeout=10_000)
             page.get_by_role("button", name="Service registry", exact=True).click()
-            page.get_by_role("button", name=service_a + " production QA", exact=True).click()
+            page.locator("button").filter(has_text=service_a).first.click()
             page.get_by_role("button", name=re.compile("Delete")).last.click()
             page.once("dialog", lambda dialog: dialog.accept())
             expect(page.get_by_text(service_a, exact=True)).to_have_count(0)
