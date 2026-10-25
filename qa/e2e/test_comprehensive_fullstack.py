@@ -255,13 +255,13 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
 
             row = row_containing(page, host_name + "-updated")
             row.get_by_role("button", name=re.compile("Deactivate|Activate")).click()
-            expect(row.get_by_text("Inactive", exact=True)).to_be_visible(timeout=10_000)
+            expect(row.get_by_text("Inactive", exact=True).last).to_be_visible(timeout=10_000)
             status, hosts_after_toggle = api_json(page, "GET", "/api/hosts")
             assert status == 200
             toggled = next(h for h in hosts_after_toggle if h["id"] == host_id)
             assert toggled["is_active"] is False
             row.get_by_role("button", name="Activate", exact=True).click()
-            expect(row.get_by_text("Active", exact=True)).to_be_visible(timeout=10_000)
+            expect(row.get_by_text("Active", exact=True).last).to_be_visible(timeout=10_000)
 
             page.get_by_role("link", name="Operations", exact=True).click()
             page.get_by_role("button", name="Agent access", exact=True).click()
