@@ -78,7 +78,14 @@ def api_public(page: Page, method: str, path: str, payload=_UNSET) -> tuple[int,
 
 
 def row_containing(page: Page, text_value: str):
-    return page.locator("div").filter(has_text=text_value).last
+    matches = page.get_by_text(text_value, exact=True)
+    for i in range(matches.count()):
+        node = matches.nth(i)
+        for depth in range(1, 8):
+            container = node.locator("xpath=" + "/.." * depth)
+            if container.get_by_role("button").count() > 0:
+                return container
+    raise AssertionError(f"Could not locate an actionable row containing {text_value!r}")
 
 
 class WebhookCapture(BaseHTTPRequestHandler):
@@ -559,7 +566,6 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
                 page.close()
                 admin_ctx.close()
                 browser.close()
-            raise
         else:
             page.close()
             admin_ctx.close()
