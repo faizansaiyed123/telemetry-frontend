@@ -429,6 +429,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             snap(page, "09-notifications")
 
             print("[QA] 11. Synthetic check real HTTP execution and durable run history")
+            # Fresh run: backend checkout follows the current synthetic-monitor fix branch.
             page.get_by_role("link", name="Synthetic checks", exact=True).click()
             expect(page.get_by_role("heading", level=1)).to_contain_text("Synthetic checks")
             page.get_by_placeholder("API health").fill(synthetic_name)
