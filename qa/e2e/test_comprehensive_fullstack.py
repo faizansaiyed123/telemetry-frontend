@@ -399,7 +399,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_placeholder("Production alerts").fill(channel_name)
             page.get_by_placeholder("https://ops.example.com/webhook").fill("http://127.0.0.1:8787/webhook")
             page.get_by_role("button", name="Create channel", exact=True).click()
-            expect(page.get_by_text(channel_name, exact=True)).to_be_visible(timeout=10_000)
+            expect(page.locator("span").filter(has_text=channel_name).first).to_be_visible(timeout=10_000)
             channel_row = action_row(page, channel_name, "Send test")
             channel_row.get_by_role("button", name="Send test", exact=True).click()
             expect(page.get_by_text("Test delivery queued:", exact=False)).to_be_visible(timeout=10_000)
