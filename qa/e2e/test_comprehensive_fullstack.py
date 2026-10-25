@@ -484,7 +484,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert status == 200
             a = next(s for s in services if s["name"] == service_a)
             b = next(s for s in services if s["name"] == service_b)
-            page.get_by_role("button", name=service_a + " production QA", exact=True).click()
+            page.locator("button").filter(has_text=service_a).first.click()
             page.get_by_text("Add dependency", exact=True).locator("..").get_by_role("button", name="Add dependency", exact=True).click() if False else None
             selects = page.locator("select")
             target_select = selects.filter(has=page.get_by_text(service_b, exact=True)).first
@@ -502,7 +502,7 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.get_by_role("button", name=re.compile("Delete")).last.click()
             page.once("dialog", lambda dialog: dialog.accept())
             expect(page.get_by_text(service_a, exact=True)).to_have_count(0)
-            page.get_by_role("button", name=service_b + " production QA", exact=True).click()
+            page.locator("button").filter(has_text=service_b).first.click()
             page.once("dialog", lambda dialog: dialog.accept())
             page.get_by_role("button", name=re.compile("Delete")).last.click()
             status, services_after = api_json(page, "GET", "/api/services")
