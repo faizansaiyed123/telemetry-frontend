@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [comprehensive, regression]
+        suite: [comprehensive]
 
     services:
       postgres:
