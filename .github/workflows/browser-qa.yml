@@ -59,6 +59,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: faizansaiyed123/telemetry-backend
+          ref: fix/backend-ci-python-313-2026-10-25
           path: backend
 
       - name: Setup Python
