@@ -2,6 +2,8 @@
 
 React + TypeScript web application for the Telemetry infrastructure observability platform.
 
+**[Explore the visual product walkthrough](docs/testing/VISUAL-TEST-WALKTHROUGH.md)** — a screenshot-led tour of the live dashboard, analytics, alerts, incidents, hosts, notifications, synthetic checks, administration, and more.
+
 The frontend contains three entry experiences:
 
 1. A public marketing homepage that explains the product and directs visitors into the platform.
