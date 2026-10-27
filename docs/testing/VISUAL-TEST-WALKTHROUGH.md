@@ -6,7 +6,7 @@ The tour below follows the product from its public introduction into the signed-
 
 ## 1. Discover the product
 
-![Telemetry public homepage](visuals/01-homepage.jpg)
+![Telemetry public homepage](visuals/01-homepage.png)
 
 The homepage introduces the observability workflow before asking a visitor to sign in. From here, **Create account** opens `/signup` and **Sign in** opens `/login`. The authenticated product lives under `/app`.
 
@@ -22,7 +22,7 @@ A request that crosses a role boundary is checked again by the backend.
 
 ## 3. Read live telemetry
 
-![Signed-in dashboard with live metric values, charts, alert history, and backend aggregates](visuals/02-live-dashboard.jpg)
+![Signed-in dashboard with live metric values, charts, alert history, and backend aggregates](visuals/02-live-dashboard.png)
 
 The overview puts the current signals together: CPU, memory, temperature, throughput, requests per second, latency, and error rate. The chart groups make it easier to compare compute, traffic, and latency/error behavior, while the historical table and backend-computed aggregates provide detail beyond the latest sample.
 
@@ -32,7 +32,7 @@ Operators can pause or resume the stream, change its rate, reset simulator state
 
 ## 4. Explore persisted history and analytics
 
-![Historical telemetry and aggregate analytics](visuals/03-analytics.jpg)
+![Historical telemetry and aggregate analytics](visuals/03-analytics.png)
 
 Analytics is the place to move from the live view to the evidence behind it. The page reads stored samples and backend-computed statistics, with bounded time-series history and percentile information rather than relying on an unbounded browser-side collection.
 
@@ -40,7 +40,7 @@ During the integrated journey, the browser read the telemetry statistics and his
 
 ## 5. Manage monitored hosts
 
-![Registered host inventory](visuals/04-host-inventory.jpg)
+![Registered host inventory](visuals/04-host-inventory.png)
 
 Hosts represent the monitored sources feeding the platform. The inventory shows each host's environment, active state, and last-seen/heartbeat information, and gives administrators controls to register, edit, activate, deactivate, or remove a host.
 
@@ -48,7 +48,7 @@ The integrated journey also exercised the host-scoped agent credential flow: an 
 
 ## 6. Follow alerts into incidents
 
-![Alert and incident investigation workspace](visuals/05-alerts-incidents.jpg)
+![Alert and incident investigation workspace](visuals/05-alerts-incidents.png)
 
 Telemetry combines statistical anomaly detection with administrator-defined alert rules. An anomaly can become an alert; related alert activity can then be grouped into an incident with acknowledgement state and an evidence timeline.
 
@@ -56,7 +56,7 @@ The browser journey triggered a CPU anomaly, confirmed the resulting alert throu
 
 ## 7. See what changed
 
-![Change-event timeline with recorded deployment context](visuals/06-change-events.jpg)
+![Change-event timeline with recorded deployment context](visuals/06-change-events.png)
 
 The change timeline brings deployments, configuration updates, feature-flag changes, maintenance, and rollbacks into the same investigation workflow as telemetry and alerts. Each event can carry a source and an external release, ticket, or build reference.
 
@@ -70,7 +70,7 @@ The SLO workspace defines objectives for a monitored host and time window. Its s
 
 ## 9. Deliver notifications
 
-![Webhook configuration and a recorded successful delivery](visuals/07-webhook-deliveries.jpg)
+![Webhook configuration and a recorded successful delivery](visuals/07-webhook-deliveries.png)
 
 Notification channels connect alert and incident lifecycle events to an HTTP endpoint. Administrators can configure which events and severities should be delivered, send a test, and inspect the durable delivery history.
 
@@ -78,7 +78,7 @@ The captured delivery history includes a successful **HTTP 200** response and it
 
 ## 10. Check HTTP endpoints synthetically
 
-![Synthetic HTTP check and persisted run result](visuals/08-synthetic-check.jpg)
+![Synthetic HTTP check and persisted run result](visuals/08-synthetic-check.png)
 
 Synthetic monitoring makes a real HTTP request to a configured target and records the outcome, response time, and error details. Checks can be associated with a registered service, edited, paused, re-enabled, and run on demand.
 
@@ -92,7 +92,7 @@ The integrated browser journey registered two services, added a dependency, read
 
 ## 12. Inspect platform operations
 
-![Platform operations audit trail](visuals/09-operations-audit-trail.jpg)
+![Platform operations audit trail](visuals/09-operations-audit-trail.png)
 
 Operations brings together runtime health, pipeline pressure, alert-rule management, agent access, and the audit trail. The audit entries make sensitive control-plane actions visible after they happen.
 
@@ -100,7 +100,7 @@ Agent keys are scoped to a host and can be revoked. The API never returns the pl
 
 ## 13. Administer accounts and roles
 
-![Administrator account and role management](visuals/10-administration.jpg)
+![Administrator account and role management](visuals/10-administration.png)
 
 Administrators can create user accounts, assign Viewer, Operator, or Admin roles, change roles, activate or deactivate accounts, and reset passwords. The backend prevents an administrator from accidentally removing the last active administrator.
 
@@ -108,13 +108,13 @@ The end-to-end journey used separate role-specific sessions to check their permi
 
 ## 14. Manage personal settings
 
-![Account settings and password management](visuals/11-account-settings.jpg)
+![Account settings and password management](visuals/11-account-settings.png)
 
 Settings provides the signed-in user with account information and password change controls. After a successful change, the browser journey signed out and signed back in with the new password, then restored the original test password for cleanup.
 
 ## 15. Use the workspace on a smaller screen
 
-![Telemetry workspace navigation at a mobile viewport](visuals/12-mobile-navigation.jpg)
+![Telemetry workspace navigation at a mobile viewport](visuals/12-mobile-navigation.png)
 
 The navigation collapses for a narrow viewport and keeps the main workspace destinations available in a mobile menu. The browser journey opened this menu at a 390-pixel viewport and checked that the expected destinations remained reachable.
 
