@@ -9,42 +9,50 @@ export function useAlerts(hostId?: string | null) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAlerts = useCallback(async (activeOnly = false) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await api.getAlerts(activeOnly);
-      const filtered = hostId ? res.alerts.filter((alert) => alert.host_id === hostId) : res.alerts;
-      setAlerts(filtered);
-      setActiveCount(filtered.filter((alert) => !alert.resolved).length);
-      setTotalCount(filtered.length);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load alerts");
-    } finally {
-      setLoading(false);
-    }
-  }, [hostId]);
-
-  const handleIncomingAlert = useCallback((incoming: Alert) => {
-    if (hostId && incoming.host_id !== hostId) return;
-    setAlerts((prev) => {
-      const idx = prev.findIndex((a) => a.id === incoming.id);
-      let updated: Alert[];
-      if (idx >= 0) {
-        updated = [...prev];
-        updated[idx] = incoming;
-      } else {
-        updated = [incoming, ...prev];
-        if (updated.length > 200) {
-          updated = updated.slice(0, 200);
-        }
+  const fetchAlerts = useCallback(
+    async (activeOnly = false) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.getAlerts(activeOnly);
+        const filtered = hostId
+          ? res.alerts.filter((alert) => alert.host_id === hostId)
+          : res.alerts;
+        setAlerts(filtered);
+        setActiveCount(filtered.filter((alert) => !alert.resolved).length);
+        setTotalCount(filtered.length);
+      } catch (err: any) {
+        setError(err?.message || "Failed to load alerts");
+      } finally {
+        setLoading(false);
       }
-      const active = updated.filter((a) => !a.resolved).length;
-      setActiveCount(active);
-      setTotalCount(updated.length);
-      return updated;
-    });
-  }, [hostId]);
+    },
+    [hostId],
+  );
+
+  const handleIncomingAlert = useCallback(
+    (incoming: Alert) => {
+      if (hostId && incoming.host_id !== hostId) return;
+      setAlerts((prev) => {
+        const idx = prev.findIndex((a) => a.id === incoming.id);
+        let updated: Alert[];
+        if (idx >= 0) {
+          updated = [...prev];
+          updated[idx] = incoming;
+        } else {
+          updated = [incoming, ...prev];
+          if (updated.length > 200) {
+            updated = updated.slice(0, 200);
+          }
+        }
+        const active = updated.filter((a) => !a.resolved).length;
+        setActiveCount(active);
+        setTotalCount(updated.length);
+        return updated;
+      });
+    },
+    [hostId],
+  );
 
   const clearAlerts = useCallback(() => {
     setAlerts([]);

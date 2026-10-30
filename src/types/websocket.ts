@@ -20,4 +20,9 @@ export type WebSocketMessage =
       data: SystemMessage;
     };
 
-export type ConnectionStatus = "CONNECTING" | "LIVE" | "RECONNECTING" | "DISCONNECTED" | "ERROR";
+export type ConnectionStatus =
+  | "CONNECTING"
+  | "LIVE"
+  | "RECONNECTING"
+  | "DISCONNECTED"
+  | "ERROR";

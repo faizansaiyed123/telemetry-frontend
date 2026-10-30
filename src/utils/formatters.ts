@@ -1,4 +1,7 @@
-export function formatMetricValue(metric: string, value: number | null | undefined): string {
+export function formatMetricValue(
+  metric: string,
+  value: number | null | undefined,
+): string {
   if (value === null || value === undefined || isNaN(value)) return "--";
   switch (metric) {
     case "cpu":
@@ -19,7 +22,10 @@ export function formatMetricValue(metric: string, value: number | null | undefin
   }
 }
 
-export function formatMetricNumber(metric: string, value: number | null | undefined): string {
+export function formatMetricNumber(
+  metric: string,
+  value: number | null | undefined,
+): string {
   if (value === null || value === undefined || isNaN(value)) return "--";
   switch (metric) {
     case "requests_per_second":
@@ -70,7 +76,12 @@ export function formatUptime(seconds: number): string {
 export function formatTimestamp(isoString: string): string {
   try {
     const d = new Date(isoString);
-    return d.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    return d.toLocaleTimeString([], {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   } catch {
     return isoString;
   }

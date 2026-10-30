@@ -12,9 +12,15 @@ export function useSimulation(onReset?: () => void) {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "info" | "error" } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "info" | "error";
+  } | null>(null);
 
-  const showNotification = (message: string, type: "success" | "info" | "error" = "info") => {
+  const showNotification = (
+    message: string,
+    type: "success" | "info" | "error" = "info",
+  ) => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification((curr) => (curr?.message === message ? null : curr));
@@ -34,8 +40,7 @@ export function useSimulation(onReset?: () => void) {
       if (healthRes.status === "fulfilled") {
         setHealth(healthRes.value);
       }
-    } catch {
-    }
+    } catch {}
   }, []);
 
   const togglePlayPause = async () => {
@@ -76,7 +81,7 @@ export function useSimulation(onReset?: () => void) {
       const res = await api.triggerAnomaly(payload);
       showNotification(
         `Anomaly injected on ${payload.metric.toUpperCase()} (${payload.intensity || 1.0}x, ${payload.duration_seconds || 3}s)`,
-        "success"
+        "success",
       );
       await refreshStatus();
       return res;

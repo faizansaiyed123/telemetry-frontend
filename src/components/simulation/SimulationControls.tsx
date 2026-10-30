@@ -69,7 +69,8 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
               Telemetry Simulation Engine
             </h3>
             <p className="text-[11px] text-slate-500">
-              Live broadcast controls, variable stream frequency & fault injection
+              Live broadcast controls, variable stream frequency & fault
+              injection
             </p>
           </div>
         </div>
@@ -126,7 +127,9 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Slider Adjustment</span>
-              <span className="font-mono text-white font-bold">{selectedRate} events/sec</span>
+              <span className="font-mono text-white font-bold">
+                {selectedRate} events/sec
+              </span>
             </div>
             <input
               type="range"
@@ -161,7 +164,9 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
 
             <button
               onClick={handleApplyRate}
-              disabled={selectedRate === currentRate || actionLoading === "rate"}
+              disabled={
+                selectedRate === currentRate || actionLoading === "rate"
+              }
               className={`px-3 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                 selectedRate === currentRate
                   ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-800"
@@ -188,11 +193,15 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Target Metric</label>
+              <label className="block text-[11px] text-slate-400 mb-1">
+                Target Metric
+              </label>
               <select
                 id="select-anomaly-metric"
                 value={anomalyMetric}
-                onChange={(e) => setAnomalyMetric(e.target.value as AnomalyMetric)}
+                onChange={(e) =>
+                  setAnomalyMetric(e.target.value as AnomalyMetric)
+                }
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
               >
                 <option value="cpu">CPU Usage</option>
@@ -204,7 +213,9 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Intensity</label>
+              <label className="block text-[11px] text-slate-400 mb-1">
+                Intensity
+              </label>
               <select
                 id="select-anomaly-intensity"
                 value={anomalyIntensity}
@@ -219,7 +230,9 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Duration</label>
+              <label className="block text-[11px] text-slate-400 mb-1">
+                Duration
+              </label>
               <select
                 id="select-anomaly-duration"
                 value={anomalyDuration}
@@ -253,11 +266,14 @@ export const SimulationControls: React.FC<SimulationControlsProps> = ({
               <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
                 <RotateCcw className="w-5 h-5" />
               </div>
-              <h4 className="text-base font-bold text-white">Reset Simulation State?</h4>
+              <h4 className="text-base font-bold text-white">
+                Reset Simulation State?
+              </h4>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              This will clear the backend's bounded telemetry history, reset sequence counters to 0,
-              and purge all active and resolved statistical anomaly alerts.
+              This will clear the backend's bounded telemetry history, reset
+              sequence counters to 0, and purge all active and resolved
+              statistical anomaly alerts.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button

@@ -85,14 +85,22 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const staleSec = getStaleSeconds();
-  const sourceMode = simulationStatus?.source_mode ?? health?.source_mode ?? "synthetic";
-  const simulationEnabled = simulationStatus?.simulation_enabled ?? health?.simulation_enabled ?? true;
-  const sourceLabel = sourceMode === "agent" ? "LIVE AGENT" : sourceMode === "hybrid" ? "HYBRID" : "SIMULATOR";
-  const sourceTone = sourceMode === "agent"
-    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
-    : sourceMode === "hybrid"
-      ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
-      : "bg-amber-500/10 border-amber-500/20 text-amber-300";
+  const sourceMode =
+    simulationStatus?.source_mode ?? health?.source_mode ?? "synthetic";
+  const simulationEnabled =
+    simulationStatus?.simulation_enabled ?? health?.simulation_enabled ?? true;
+  const sourceLabel =
+    sourceMode === "agent"
+      ? "LIVE AGENT"
+      : sourceMode === "hybrid"
+        ? "HYBRID"
+        : "SIMULATOR";
+  const sourceTone =
+    sourceMode === "agent"
+      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+      : sourceMode === "hybrid"
+        ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
+        : "bg-amber-500/10 border-amber-500/20 text-amber-300";
 
   return (
     <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 py-3.5 transition-all">
@@ -111,13 +119,19 @@ export const Header: React.FC<HeaderProps> = ({
               {getStatusBadge()}
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
-              Real-time infrastructure streaming & deterministic anomaly detection
+              Real-time infrastructure streaming & deterministic anomaly
+              detection
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs " + sourceTone}>
+          <div
+            className={
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs " +
+              sourceTone
+            }
+          >
             <Radio className="w-3.5 h-3.5" />
             <span className="font-semibold">{sourceLabel}</span>
           </div>
@@ -127,7 +141,8 @@ export const Header: React.FC<HeaderProps> = ({
               <Radio className="w-3.5 h-3.5 text-cyan-400" />
               <span className="text-slate-400">Rate:</span>
               <span className="font-semibold text-slate-200">
-                {simulationStatus?.rate ?? (health?.stream_active ? 10 : 0)} events/s
+                {simulationStatus?.rate ?? (health?.stream_active ? 10 : 0)}{" "}
+                events/s
               </span>
             </div>
           )}
@@ -135,16 +150,28 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
             <Zap
               className={`w-3.5 h-3.5 ${
-                sourceMode === "agent" ? "text-emerald-400" : simulationStatus?.running ? "text-emerald-400" : "text-amber-400"
+                sourceMode === "agent"
+                  ? "text-emerald-400"
+                  : simulationStatus?.running
+                    ? "text-emerald-400"
+                    : "text-amber-400"
               }`}
             />
             <span className="text-slate-400">Engine:</span>
             <span
               className={`font-semibold ${
-                sourceMode === "agent" ? "text-emerald-300" : simulationStatus?.running ? "text-emerald-300" : "text-amber-300"
+                sourceMode === "agent"
+                  ? "text-emerald-300"
+                  : simulationStatus?.running
+                    ? "text-emerald-300"
+                    : "text-amber-300"
               }`}
             >
-              {sourceMode === "agent" ? "INGESTING" : simulationStatus?.running ? "RUNNING" : "PAUSED"}
+              {sourceMode === "agent"
+                ? "INGESTING"
+                : simulationStatus?.running
+                  ? "RUNNING"
+                  : "PAUSED"}
             </span>
           </div>
 
@@ -161,14 +188,18 @@ export const Header: React.FC<HeaderProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             )}
             <span>Alerts:</span>
-            <span className="font-semibold text-slate-200">{activeAlertCount}</span>
+            <span className="font-semibold text-slate-200">
+              {activeAlertCount}
+            </span>
           </div>
 
           <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>Uptime:</span>
             <span className="font-mono text-slate-200">
-              {formatUptime(simulationStatus?.uptime_seconds ?? health?.uptime_seconds ?? 0)}
+              {formatUptime(
+                simulationStatus?.uptime_seconds ?? health?.uptime_seconds ?? 0,
+              )}
             </span>
           </div>
 
@@ -176,7 +207,11 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
               <Server className="w-3.5 h-3.5 text-emerald-400" />
               <span>Ingested:</span>
-              <span className="font-mono text-slate-200">{simulationStatus?.events_ingested ?? health?.events_ingested ?? 0}</span>
+              <span className="font-mono text-slate-200">
+                {simulationStatus?.events_ingested ??
+                  health?.events_ingested ??
+                  0}
+              </span>
             </div>
           )}
 
@@ -184,7 +219,9 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-400">
               <Server className="w-3.5 h-3.5 text-slate-400" />
               <span>Seq:</span>
-              <span className="font-mono text-slate-200">#{simulationStatus.sequence}</span>
+              <span className="font-mono text-slate-200">
+                #{simulationStatus.sequence}
+              </span>
             </div>
           )}
 
@@ -205,7 +242,9 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="max-w-7xl mx-auto mt-2 py-1 px-3 bg-amber-500/15 border border-amber-500/30 rounded-lg text-xs text-amber-300 flex items-center justify-between">
           <span>
             Connection status: <strong>{connectionStatus}</strong>.
-            {staleSec ? ` (Last telemetry packet received ${staleSec}s ago)` : " Connecting to WebSocket stream..."}
+            {staleSec
+              ? ` (Last telemetry packet received ${staleSec}s ago)`
+              : " Connecting to WebSocket stream..."}
           </span>
           <button
             onClick={onReconnect}

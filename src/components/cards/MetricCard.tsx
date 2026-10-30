@@ -34,7 +34,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const delta =
-    value !== null && value !== undefined && previousValue !== null && previousValue !== undefined
+    value !== null &&
+    value !== undefined &&
+    previousValue !== null &&
+    previousValue !== undefined
       ? value - previousValue
       : 0;
 
@@ -61,16 +64,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     const strokeColor = isAnomaly
       ? "#f43f5e"
       : accentColor === "emerald"
-      ? "#10b981"
-      : accentColor === "amber"
-      ? "#f59e0b"
-      : accentColor === "rose"
-      ? "#f43f5e"
-      : accentColor === "purple"
-      ? "#a855f7"
-      : accentColor === "blue"
-      ? "#3b82f6"
-      : "#06b6d4";
+        ? "#10b981"
+        : accentColor === "amber"
+          ? "#f59e0b"
+          : accentColor === "rose"
+            ? "#f43f5e"
+            : accentColor === "purple"
+              ? "#a855f7"
+              : accentColor === "blue"
+                ? "#3b82f6"
+                : "#06b6d4";
 
     ctx.beginPath();
     ctx.strokeStyle = strokeColor;
@@ -145,12 +148,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             <span
               className={`flex items-center font-mono font-medium ${
                 delta > 0
-                  ? metricKey === "error_rate" || metricKey === "latency_ms" || metricKey === "temperature"
+                  ? metricKey === "error_rate" ||
+                    metricKey === "latency_ms" ||
+                    metricKey === "temperature"
                     ? "text-rose-400"
                     : "text-emerald-400"
-                  : metricKey === "error_rate" || metricKey === "latency_ms" || metricKey === "temperature"
-                  ? "text-emerald-400"
-                  : "text-slate-400"
+                  : metricKey === "error_rate" ||
+                      metricKey === "latency_ms" ||
+                      metricKey === "temperature"
+                    ? "text-emerald-400"
+                    : "text-slate-400"
               }`}
             >
               {delta > 0 ? (
@@ -166,11 +173,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             </span>
           )}
 
-          {min !== null && max !== null && min !== undefined && max !== undefined && (
-            <span className="text-slate-500 text-[11px] font-mono">
-              range {min} - {max}
-            </span>
-          )}
+          {min !== null &&
+            max !== null &&
+            min !== undefined &&
+            max !== undefined && (
+              <span className="text-slate-500 text-[11px] font-mono">
+                range {min} - {max}
+              </span>
+            )}
         </div>
       </div>
 

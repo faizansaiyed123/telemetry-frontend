@@ -1,10 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Clock3, Filter, GitBranch, RefreshCw, ShieldAlert } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock3,
+  Filter,
+  GitBranch,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react";
 import type { AuthUser, Incident } from "../types/app.js";
 import { api } from "../services/api.js";
 
 function formatDuration(start: string, end: string): string {
-  const seconds = Math.max(0, Math.round((Date.parse(end) - Date.parse(start)) / 1000));
+  const seconds = Math.max(
+    0,
+    Math.round((Date.parse(end) - Date.parse(start)) / 1000),
+  );
   if (seconds < 60) return String(seconds) + "s";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return String(minutes) + "m " + String(seconds % 60) + "s";
@@ -13,25 +24,33 @@ function formatDuration(start: string, end: string): string {
 }
 
 function severityClass(severity: Incident["severity"]): string {
-  if (severity === "CRITICAL") return "border-rose-500/20 bg-rose-500/10 text-rose-300";
-  if (severity === "WARNING") return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+  if (severity === "CRITICAL")
+    return "border-rose-500/20 bg-rose-500/10 text-rose-300";
+  if (severity === "WARNING")
+    return "border-amber-500/20 bg-amber-500/10 text-amber-300";
   return "border-sky-500/20 bg-sky-500/10 text-sky-300";
 }
 
 function statusClass(status: Incident["status"]): string {
-  if (status === "resolved") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
-  if (status === "acknowledged") return "border-indigo-500/20 bg-indigo-500/10 text-indigo-300";
+  if (status === "resolved")
+    return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  if (status === "acknowledged")
+    return "border-indigo-500/20 bg-indigo-500/10 text-indigo-300";
   return "border-rose-500/20 bg-rose-500/10 text-rose-300";
 }
 
 export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"all" | Incident["status"]>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | Incident["status"]>(
+    "all",
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [evidence, setEvidence] = useState<import("../types/app.js").IncidentEvidence | null>(null);
+  const [evidence, setEvidence] = useState<
+    import("../types/app.js").IncidentEvidence | null
+  >(null);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
   const canAcknowledge = user.role === "admin" || user.role === "operator";
 
@@ -39,11 +58,19 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
     try {
       setLoading(true);
       setError(null);
-      const rows = await api.getIncidents(statusFilter === "all" ? undefined : statusFilter);
+      const rows = await api.getIncidents(
+        statusFilter === "all" ? undefined : statusFilter,
+      );
       setIncidents(rows);
-      setSelectedId((current) => current && rows.some((item) => item.id === current) ? current : rows[0]?.id ?? null);
+      setSelectedId((current) =>
+        current && rows.some((item) => item.id === current)
+          ? current
+          : (rows[0]?.id ?? null),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load incidents.");
+      setError(
+        err instanceof Error ? err.message : "Unable to load incidents.",
+      );
     } finally {
       setLoading(false);
     }
@@ -67,48 +94,74 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
       return;
     }
     setEvidenceLoading(true);
-    api.getIncidentEvidence(selectedId)
+    api
+      .getIncidentEvidence(selectedId)
       .then((data) => {
         if (mounted) setEvidence(data);
       })
       .catch((err) => {
-        if (mounted) setError(err instanceof Error ? err.message : "Unable to load incident evidence.");
+        if (mounted)
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load incident evidence.",
+          );
       })
       .finally(() => {
         if (mounted) setEvidenceLoading(false);
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [selectedId]);
 
   async function acknowledge(id: string) {
     setWorking(id);
     try {
       const updated = await api.acknowledgeIncident(id);
-      setIncidents((rows) => rows.map((item) => item.id === id ? updated : item));
+      setIncidents((rows) =>
+        rows.map((item) => (item.id === id ? updated : item)),
+      );
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to acknowledge incident.");
+      setError(
+        err instanceof Error ? err.message : "Unable to acknowledge incident.",
+      );
     } finally {
       setWorking(null);
     }
   }
 
   const openCount = incidents.filter((item) => item.status === "open").length;
-  const acknowledgedCount = incidents.filter((item) => item.status === "acknowledged").length;
-  const resolvedCount = incidents.filter((item) => item.status === "resolved").length;
+  const acknowledgedCount = incidents.filter(
+    (item) => item.status === "acknowledged",
+  ).length;
+  const resolvedCount = incidents.filter(
+    (item) => item.status === "resolved",
+  ).length;
 
   return (
     <main className="mx-auto max-w-7xl space-y-6 p-5 sm:p-8">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Operations</div>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Incident timeline</h1>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+            Operations
+          </div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+            Incident timeline
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Correlated alerts are grouped into an incident so operators investigate one operational event instead of a noisy alert stream.
+            Correlated alerts are grouped into an incident so operators
+            investigate one operational event instead of a noisy alert stream.
           </p>
         </div>
-        <button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-300 disabled:opacity-40">
-          <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />Refresh
+        <button
+          onClick={() => void load()}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-300 disabled:opacity-40"
+        >
+          <RefreshCw className={"h-4 w-4 " + (loading ? "animate-spin" : "")} />
+          Refresh
         </button>
       </div>
 
@@ -119,9 +172,14 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
           ["Resolved", resolvedCount, "text-emerald-300"],
           ["Visible", incidents.length, "text-cyan-300"],
         ].map(([label, value, tone]) => (
-          <div key={String(label)} className="rounded-2xl border border-white/7 bg-white/[0.02] p-5">
+          <div
+            key={String(label)}
+            className="rounded-2xl border border-white/7 bg-white/[0.02] p-5"
+          >
             <div className="text-xs text-slate-500">{label}</div>
-            <div className={"mt-3 text-3xl font-semibold " + String(tone)}>{value}</div>
+            <div className={"mt-3 text-3xl font-semibold " + String(tone)}>
+              {value}
+            </div>
           </div>
         ))}
       </div>
@@ -129,48 +187,109 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
       <div className="flex flex-wrap items-center gap-2">
         <Filter className="h-4 w-4 text-slate-600" />
         {(["all", "open", "acknowledged", "resolved"] as const).map((value) => (
-          <button key={value} onClick={() => setStatusFilter(value)} className={"rounded-full border px-3 py-1.5 text-xs " + (
-            statusFilter === value
-              ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
-              : "border-white/8 text-slate-500 hover:text-slate-300"
-          )}>
-            {value === "all" ? "All incidents" : value.charAt(0).toUpperCase() + value.slice(1)}
+          <button
+            key={value}
+            onClick={() => setStatusFilter(value)}
+            className={
+              "rounded-full border px-3 py-1.5 text-xs " +
+              (statusFilter === value
+                ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-200"
+                : "border-white/8 text-slate-500 hover:text-slate-300")
+            }
+          >
+            {value === "all"
+              ? "All incidents"
+              : value.charAt(0).toUpperCase() + value.slice(1)}
           </button>
         ))}
       </div>
 
-      {error && <div role="alert" className="rounded-xl border border-rose-500/15 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">{error}</div>}
+      {error && (
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-500/15 bg-rose-500/5 px-4 py-3 text-sm text-rose-300"
+        >
+          {error}
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <div className="overflow-hidden rounded-2xl border border-white/7 bg-slate-900/50">
-          <div className="border-b border-white/6 px-5 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Incidents</div>
+          <div className="border-b border-white/6 px-5 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Incidents
+          </div>
           {loading ? (
-            <div className="p-8 text-sm text-slate-500">Loading incident history…</div>
+            <div className="p-8 text-sm text-slate-500">
+              Loading incident history…
+            </div>
           ) : incidents.length === 0 ? (
             <div className="p-10 text-center">
               <CheckCircle2 className="mx-auto h-7 w-7 text-emerald-300" />
-              <div className="mt-3 text-sm font-medium text-white">No correlated incidents</div>
-              <p className="mt-2 text-xs leading-5 text-slate-600">When multiple alerts appear close together on the same host, the backend groups them here.</p>
+              <div className="mt-3 text-sm font-medium text-white">
+                No correlated incidents
+              </div>
+              <p className="mt-2 text-xs leading-5 text-slate-600">
+                When multiple alerts appear close together on the same host, the
+                backend groups them here.
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-white/6">
               {incidents.map((incident) => (
-                <button key={incident.id} onClick={() => setSelectedId(incident.id)} className={"w-full px-5 py-5 text-left transition hover:bg-white/[0.025] " + (selectedId === incident.id ? "bg-cyan-400/[0.035]" : "")}>
+                <button
+                  key={incident.id}
+                  onClick={() => setSelectedId(incident.id)}
+                  className={
+                    "w-full px-5 py-5 text-left transition hover:bg-white/[0.025] " +
+                    (selectedId === incident.id ? "bg-cyan-400/[0.035]" : "")
+                  }
+                >
                   <div className="flex items-start gap-3">
-                    <div className={"mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border " + severityClass(incident.severity)}>
+                    <div
+                      className={
+                        "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border " +
+                        severityClass(incident.severity)
+                      }
+                    >
                       <ShieldAlert className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-sm font-medium text-white">{incident.title}</span>
-                        <span className={"rounded-full border px-2 py-1 text-[10px] font-medium " + statusClass(incident.status)}>{incident.status}</span>
+                        <span className="truncate text-sm font-medium text-white">
+                          {incident.title}
+                        </span>
+                        <span
+                          className={
+                            "rounded-full border px-2 py-1 text-[10px] font-medium " +
+                            statusClass(incident.status)
+                          }
+                        >
+                          {incident.status}
+                        </span>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                        {incident.service_id && <span className="text-cyan-300">service {incident.service_id}</span>}
-                        <span>{new Date(incident.first_seen_at).toLocaleString()}</span>
-                        <span>{formatDuration(incident.first_seen_at, incident.last_seen_at)}</span>
-                        <span>{incident.alert_ids.length} correlated alerts</span>
-                        {incident.active_alert_count > 0 && <span className="text-rose-300">{incident.active_alert_count} active</span>}
+                        {incident.service_id && (
+                          <span className="text-cyan-300">
+                            service {incident.service_id}
+                          </span>
+                        )}
+                        <span>
+                          {new Date(incident.first_seen_at).toLocaleString()}
+                        </span>
+                        <span>
+                          {formatDuration(
+                            incident.first_seen_at,
+                            incident.last_seen_at,
+                          )}
+                        </span>
+                        <span>
+                          {incident.alert_ids.length} correlated alerts
+                        </span>
+                        {incident.active_alert_count > 0 && (
+                          <span className="text-rose-300">
+                            {incident.active_alert_count} active
+                          </span>
+                        )}
                       </div>
                     </div>
                     <AlertCircle className="mt-1 h-4 w-4 shrink-0 text-slate-700" />
@@ -186,78 +305,221 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
             <div className="flex h-full min-h-72 items-center justify-center text-center">
               <div>
                 <Clock3 className="mx-auto h-7 w-7 text-slate-700" />
-                <div className="mt-3 text-sm text-slate-500">Select an incident to inspect its evidence window.</div>
+                <div className="mt-3 text-sm text-slate-500">
+                  Select an incident to inspect its evidence window.
+                </div>
               </div>
             </div>
           ) : (
             <>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">Incident</div>
-                  <h2 className="mt-2 text-xl font-semibold text-white">{selected.title}</h2>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+                    Incident
+                  </div>
+                  <h2 className="mt-2 text-xl font-semibold text-white">
+                    {selected.title}
+                  </h2>
                 </div>
                 {canAcknowledge && selected.status !== "resolved" && (
-                  <button disabled={working === selected.id} onClick={() => void acknowledge(selected.id)} className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950 disabled:opacity-40">
-                    <CheckCircle2 className="h-3.5 w-3.5" />{working === selected.id ? "Acknowledging…" : "Acknowledge"}
+                  <button
+                    disabled={working === selected.id}
+                    onClick={() => void acknowledge(selected.id)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-4 py-2.5 text-xs font-semibold text-slate-950 disabled:opacity-40"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {working === selected.id ? "Acknowledging…" : "Acknowledge"}
                   </button>
                 )}
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Severity</div>
-                  <div className={"mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs " + severityClass(selected.severity)}>{selected.severity}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
+                    Severity
+                  </div>
+                  <div
+                    className={
+                      "mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs " +
+                      severityClass(selected.severity)
+                    }
+                  >
+                    {selected.severity}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Status</div>
-                  <div className={"mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs " + statusClass(selected.status)}>{selected.status}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
+                    Status
+                  </div>
+                  <div
+                    className={
+                      "mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs " +
+                      statusClass(selected.status)
+                    }
+                  >
+                    {selected.status}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Host</div>
-                  <div className="mt-2 break-all font-mono text-xs text-slate-300">{selected.host_id ?? "System"}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
+                    Host
+                  </div>
+                  <div className="mt-2 break-all font-mono text-xs text-slate-300">
+                    {selected.host_id ?? "System"}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Service</div>
-                  <div className="mt-2 break-all font-mono text-xs text-cyan-200">{selected.service_id ?? "Unassigned"}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
+                    Service
+                  </div>
+                  <div className="mt-2 break-all font-mono text-xs text-cyan-200">
+                    {selected.service_id ?? "Unassigned"}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-white/7 bg-white/[0.02] p-4">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Duration</div>
-                  <div className="mt-2 text-sm text-slate-300">{formatDuration(selected.first_seen_at, selected.last_seen_at)}</div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
+                    Duration
+                  </div>
+                  <div className="mt-2 text-sm text-slate-300">
+                    {formatDuration(
+                      selected.first_seen_at,
+                      selected.last_seen_at,
+                    )}
+                  </div>
                 </div>
               </div>
 
               <div className="mt-6">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">Correlated alert IDs</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+                  Correlated alert IDs
+                </div>
                 <div className="mt-3 space-y-2">
-                  {selected.alert_ids.map((id) => <div key={id} className="rounded-lg border border-white/7 bg-black/10 px-3 py-2 font-mono text-xs text-slate-500">{id}</div>)}
+                  {selected.alert_ids.map((id) => (
+                    <div
+                      key={id}
+                      className="rounded-lg border border-white/7 bg-black/10 px-3 py-2 font-mono text-xs text-slate-500"
+                    >
+                      {id}
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="mt-6 rounded-xl border border-cyan-400/10 bg-cyan-400/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs font-medium text-cyan-200"><Clock3 className="h-3.5 w-3.5" />Correlated evidence</div>
-                  {evidenceLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300" />}
+                  <div className="flex items-center gap-2 text-xs font-medium text-cyan-200">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    Correlated evidence
+                  </div>
+                  {evidenceLoading && (
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300" />
+                  )}
                 </div>
                 {evidence ? (
                   <>
-                    {evidence.metric_findings && evidence.metric_findings.length > 0 && <div className="mt-4 rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Metric findings</div><div className="mt-2 space-y-2">{evidence.metric_findings.map((finding)=><p key={finding} className="text-xs leading-5 text-slate-500">{finding}</p>)}</div></div>}
-                    {evidence.service_impacts && evidence.service_impacts.length > 0 && <div className="mt-4 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.03] p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-cyan-300">Downstream service impact</div><div className="mt-2 space-y-2">{evidence.service_impacts.map((impact)=><div key={impact.service_id} className="flex items-center justify-between gap-3 text-xs"><span className="text-slate-300">{impact.service_name}</span><span className="text-slate-600">{impact.hops} hop(s) · {impact.critical_dependency?"critical dependency":"dependency"}</span></div>)}</div></div>}
+                    {evidence.metric_findings &&
+                      evidence.metric_findings.length > 0 && (
+                        <div className="mt-4 rounded-lg border border-white/7 bg-black/10 p-3">
+                          <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">
+                            Metric findings
+                          </div>
+                          <div className="mt-2 space-y-2">
+                            {evidence.metric_findings.map((finding) => (
+                              <p
+                                key={finding}
+                                className="text-xs leading-5 text-slate-500"
+                              >
+                                {finding}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    {evidence.service_impacts &&
+                      evidence.service_impacts.length > 0 && (
+                        <div className="mt-4 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.03] p-3">
+                          <div className="text-[10px] uppercase tracking-[0.12em] text-cyan-300">
+                            Downstream service impact
+                          </div>
+                          <div className="mt-2 space-y-2">
+                            {evidence.service_impacts.map((impact) => (
+                              <div
+                                key={impact.service_id}
+                                className="flex items-center justify-between gap-3 text-xs"
+                              >
+                                <span className="text-slate-300">
+                                  {impact.service_name}
+                                </span>
+                                <span className="text-slate-600">
+                                  {impact.hops} hop(s) ·{" "}
+                                  {impact.critical_dependency
+                                    ? "critical dependency"
+                                    : "dependency"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Alerts</div><div className="mt-1 text-lg font-semibold text-white">{evidence.alert_count}</div></div>
-                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Metrics</div><div className="mt-1 text-lg font-semibold text-white">{evidence.metric_count}</div></div>
-                      <div className="rounded-lg border border-white/7 bg-black/10 p-3"><div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Changes</div><div className="mt-1 text-lg font-semibold text-white">{evidence.change_count}</div></div>
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3">
+                        <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">
+                          Alerts
+                        </div>
+                        <div className="mt-1 text-lg font-semibold text-white">
+                          {evidence.alert_count}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3">
+                        <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">
+                          Metrics
+                        </div>
+                        <div className="mt-1 text-lg font-semibold text-white">
+                          {evidence.metric_count}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-white/7 bg-black/10 p-3">
+                        <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">
+                          Changes
+                        </div>
+                        <div className="mt-1 text-lg font-semibold text-white">
+                          {evidence.change_count}
+                        </div>
+                      </div>
                     </div>
                     <div className="mt-4 space-y-3">
                       {evidence.timeline.map((item) => (
-                        <div key={item.kind + ":" + item.reference_id} className="flex gap-3">
-                          <div className={"mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border " + (item.kind === "change" ? "border-cyan-400/10 bg-cyan-400/5 text-cyan-300" : "border-rose-400/10 bg-rose-400/5 text-rose-300")}>
-                            {item.kind === "change" ? <GitBranch className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
+                        <div
+                          key={item.kind + ":" + item.reference_id}
+                          className="flex gap-3"
+                        >
+                          <div
+                            className={
+                              "mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border " +
+                              (item.kind === "change"
+                                ? "border-cyan-400/10 bg-cyan-400/5 text-cyan-300"
+                                : "border-rose-400/10 bg-rose-400/5 text-rose-300")
+                            }
+                          >
+                            {item.kind === "change" ? (
+                              <GitBranch className="h-3.5 w-3.5" />
+                            ) : (
+                              <AlertCircle className="h-3.5 w-3.5" />
+                            )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="text-xs font-medium text-slate-200">{item.title}</div>
+                            <div className="text-xs font-medium text-slate-200">
+                              {item.title}
+                            </div>
                             <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-slate-600">
-                              <span>{new Date(item.timestamp).toLocaleString()}</span>
-                              <span>{item.kind === "change" ? "Change" : item.source ?? "Alert"}</span>
+                              <span>
+                                {new Date(item.timestamp).toLocaleString()}
+                              </span>
+                              <span>
+                                {item.kind === "change"
+                                  ? "Change"
+                                  : (item.source ?? "Alert")}
+                              </span>
                               {item.severity && <span>{item.severity}</span>}
                               {item.status && <span>{item.status}</span>}
                             </div>
@@ -266,19 +528,34 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                       ))}
                     </div>
                     <div className="mt-4 border-t border-white/6 pt-4">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Findings</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                        Findings
+                      </div>
                       <div className="mt-2 space-y-2">
-                        {evidence.findings.map((finding) => <p key={finding} className="text-xs leading-5 text-slate-500">{finding}</p>)}
+                        {evidence.findings.map((finding) => (
+                          <p
+                            key={finding}
+                            className="text-xs leading-5 text-slate-500"
+                          >
+                            {finding}
+                          </p>
+                        ))}
                       </div>
                     </div>
                     <p className="mt-4 text-[10px] leading-4 text-slate-600">
-                      Correlation window: ±{evidence.correlation_window_minutes} minutes. Findings are evidence-based and do not claim a root cause that was not observed.
+                      Correlation window: ±{evidence.correlation_window_minutes}{" "}
+                      minutes. Findings are evidence-based and do not claim a
+                      root cause that was not observed.
                     </p>
                   </>
                 ) : (
                   <p className="mt-2 text-xs leading-5 text-slate-600">
-                    First signal: {new Date(selected.first_seen_at).toLocaleString()} · Last signal: {new Date(selected.last_seen_at).toLocaleString()}.
-                    {evidenceLoading ? " Loading correlated events…" : " No evidence details available yet."}
+                    First signal:{" "}
+                    {new Date(selected.first_seen_at).toLocaleString()} · Last
+                    signal: {new Date(selected.last_seen_at).toLocaleString()}.
+                    {evidenceLoading
+                      ? " Loading correlated events…"
+                      : " No evidence details available yet."}
                   </p>
                 )}
               </div>

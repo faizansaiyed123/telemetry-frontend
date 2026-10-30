@@ -95,8 +95,7 @@ export class TelemetryWebSocketService {
           if (parsed && typeof parsed.type === "string") {
             this.notifyMessage(parsed);
           }
-        } catch {
-        }
+        } catch {}
       };
 
       socket.onerror = () => {
@@ -126,14 +125,19 @@ export class TelemetryWebSocketService {
         this.scheduleReconnect();
       };
     } catch (error) {
-      if (this.intentionalClose || generation !== this.connectGeneration) return;
+      if (this.intentionalClose || generation !== this.connectGeneration)
+        return;
 
-      if (error instanceof Error && error.message === "Authentication required") {
+      if (
+        error instanceof Error &&
+        error.message === "Authentication required"
+      ) {
         this.setStatus("DISCONNECTED");
         return;
       }
 
-      if (error instanceof Error && error.message === "Connection cancelled") return;
+      if (error instanceof Error && error.message === "Connection cancelled")
+        return;
 
       this.setStatus("ERROR");
       this.scheduleReconnect();
@@ -159,7 +163,11 @@ export class TelemetryWebSocketService {
   }
 
   private scheduleReconnect(): void {
-    if (this.intentionalClose || !window.localStorage.getItem("telemetry_access_token")) return;
+    if (
+      this.intentionalClose ||
+      !window.localStorage.getItem("telemetry_access_token")
+    )
+      return;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -168,7 +176,10 @@ export class TelemetryWebSocketService {
     }
 
     this.reconnectAttempts += 1;
-    const delay = Math.min(8000, Math.round(1000 * Math.pow(1.5, this.reconnectAttempts - 1)));
+    const delay = Math.min(
+      8000,
+      Math.round(1000 * Math.pow(1.5, this.reconnectAttempts - 1)),
+    );
     this.setStatus("RECONNECTING");
 
     this.reconnectTimer = setTimeout(() => {

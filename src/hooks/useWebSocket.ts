@@ -3,7 +3,9 @@ import { telemetryWsService } from "../services/websocket.js";
 import { ConnectionStatus, WebSocketMessage } from "../types/websocket.js";
 
 export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
-  const [status, setStatus] = useState<ConnectionStatus>(telemetryWsService.getStatus());
+  const [status, setStatus] = useState<ConnectionStatus>(
+    telemetryWsService.getStatus(),
+  );
 
   useEffect(() => {
     const unsubStatus = telemetryWsService.subscribeStatus((newStatus) => {

@@ -22,7 +22,12 @@ export interface HealthResponse {
   events_ingested: number;
 }
 
-export type AnomalyMetric = "cpu" | "memory" | "temperature" | "latency" | "error_rate";
+export type AnomalyMetric =
+  | "cpu"
+  | "memory"
+  | "temperature"
+  | "latency"
+  | "error_rate";
 
 export interface TriggerAnomalyPayload {
   metric: AnomalyMetric;

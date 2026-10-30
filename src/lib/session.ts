@@ -11,7 +11,11 @@ export function getStoredToken(): string | null {
 export function getStoredUser(): AuthUser | null {
   const raw = window.localStorage.getItem(USER_KEY);
   if (!raw) return null;
-  try { return JSON.parse(raw) as AuthUser; } catch { return null; }
+  try {
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
 }
 
 export function saveSession(session: AuthResponse): void {
