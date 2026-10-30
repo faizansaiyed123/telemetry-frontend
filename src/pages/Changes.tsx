@@ -29,7 +29,10 @@ const eventTypes: Array<{
 ];
 
 function typeMeta(value: ChangeEvent["event_type"]) {
-  return eventTypes.find((item) => item.value === value) ?? eventTypes[eventTypes.length - 1];
+  return (
+    eventTypes.find((item) => item.value === value) ??
+    eventTypes[eventTypes.length - 1]
+  );
 }
 
 function formatRelativeTime(value: string): string {
@@ -49,14 +52,17 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [hosts, setHosts] = useState<Host[]>([]);
   const [hostFilter, setHostFilter] = useState<string>("all");
   const [createHostId, setCreateHostId] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<ChangeEvent["event_type"] | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<
+    ChangeEvent["event_type"] | "all"
+  >("all");
   const [events, setEvents] = useState<ChangeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const [eventType, setEventType] = useState<ChangeEvent["event_type"]>("deployment");
+  const [eventType, setEventType] =
+    useState<ChangeEvent["event_type"]>("deployment");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [externalRef, setExternalRef] = useState("");
@@ -66,18 +72,27 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
     try {
       setLoading(true);
       setError(null);
-      setEvents(await api.getChangeEvents(hostFilter === "all" ? undefined : hostFilter));
+      setEvents(
+        await api.getChangeEvents(
+          hostFilter === "all" ? undefined : hostFilter,
+        ),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load change events.");
+      setError(
+        err instanceof Error ? err.message : "Unable to load change events.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    api.getHosts()
+    api
+      .getHosts()
       .then(setHosts)
-      .catch((err) => setError(err instanceof Error ? err.message : "Unable to load hosts."));
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Unable to load hosts."),
+      );
   }, []);
 
   useEffect(() => {
@@ -87,7 +102,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
   }, [hostFilter]);
 
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => typeFilter === "all" || event.event_type === typeFilter);
+    return events.filter(
+      (event) => typeFilter === "all" || event.event_type === typeFilter,
+    );
   }, [events, typeFilter]);
 
   async function createEvent() {
@@ -106,7 +123,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
         host_id: createHostId || undefined,
         source: "manual",
         external_ref: externalRef.trim() || undefined,
-        occurred_at: occurredAt ? new Date(occurredAt).toISOString() : undefined,
+        occurred_at: occurredAt
+          ? new Date(occurredAt).toISOString()
+          : undefined,
       });
       setEvents((items) => [created, ...items]);
       setTitle("");
@@ -115,7 +134,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
       setOccurredAt("");
       setNotice("Change event recorded and added to the operational timeline.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create change event.");
+      setError(
+        err instanceof Error ? err.message : "Unable to create change event.",
+      );
     } finally {
       setWorking(false);
     }
@@ -125,10 +146,16 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
     <main className="mx-auto max-w-7xl space-y-6 p-5 sm:p-8">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Operational context</div>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Change events</h1>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+            Operational context
+          </div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+            Change events
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Record deployments, configuration changes, rollbacks, and maintenance so incidents can be investigated against what changed around the same time.
+            Record deployments, configuration changes, rollbacks, and
+            maintenance so incidents can be investigated against what changed
+            around the same time.
           </p>
         </div>
         <button
@@ -143,7 +170,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
 
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <label className="rounded-2xl border border-white/7 bg-white/[0.02] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">Host</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+            Host
+          </div>
           <select
             value={hostFilter}
             onChange={(event) => setHostFilter(event.target.value)}
@@ -151,27 +180,43 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
           >
             <option value="all">All hosts</option>
             {hosts.map((host) => (
-              <option key={host.id} value={host.id}>{host.name} · {host.environment}</option>
+              <option key={host.id} value={host.id}>
+                {host.name} · {host.environment}
+              </option>
             ))}
           </select>
         </label>
 
         <label className="rounded-2xl border border-white/7 bg-white/[0.02] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">Event type</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+            Event type
+          </div>
           <select
             value={typeFilter}
-            onChange={(event) => setTypeFilter(event.target.value as typeof typeFilter)}
+            onChange={(event) =>
+              setTypeFilter(event.target.value as typeof typeFilter)
+            }
             className="mt-2 w-full rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/30"
           >
             <option value="all">All changes</option>
-            {eventTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            {eventTypes.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
           </select>
         </label>
 
         <div className="rounded-2xl border border-white/7 bg-white/[0.02] p-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">Visible</div>
-          <div className="mt-2 text-2xl font-semibold text-cyan-300">{filteredEvents.length}</div>
-          <div className="text-xs text-slate-600">of {events.length} loaded</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+            Visible
+          </div>
+          <div className="mt-2 text-2xl font-semibold text-cyan-300">
+            {filteredEvents.length}
+          </div>
+          <div className="text-xs text-slate-600">
+            of {events.length} loaded
+          </div>
         </div>
       </div>
 
@@ -182,9 +227,12 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
               <Plus className="h-4 w-4 text-cyan-300" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-white">Record a change</h2>
+              <h2 className="text-sm font-semibold text-white">
+                Record a change
+              </h2>
               <p className="mt-1 text-xs leading-5 text-slate-600">
-                These events become part of incident evidence and are auditable operator actions.
+                These events become part of incident evidence and are auditable
+                operator actions.
               </p>
             </div>
           </div>
@@ -192,10 +240,16 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <select
               value={eventType}
-              onChange={(event) => setEventType(event.target.value as ChangeEvent["event_type"])}
+              onChange={(event) =>
+                setEventType(event.target.value as ChangeEvent["event_type"])
+              }
               className="rounded-xl border border-white/8 bg-slate-950 px-4 py-3 text-sm text-white"
             >
-              {eventTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              {eventTypes.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
             </select>
 
             <select
@@ -204,7 +258,11 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
               className="rounded-xl border border-white/8 bg-slate-950 px-4 py-3 text-sm text-white"
             >
               <option value="">System-wide</option>
-              {hosts.map((host) => <option key={host.id} value={host.id}>{host.name}</option>)}
+              {hosts.map((host) => (
+                <option key={host.id} value={host.id}>
+                  {host.name}
+                </option>
+              ))}
             </select>
 
             <input
@@ -233,7 +291,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
             />
 
             <label className="rounded-xl border border-white/8 bg-black/10 px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">Occurred at</div>
+              <div className="text-[10px] uppercase tracking-[0.12em] text-slate-600">
+                Occurred at
+              </div>
               <input
                 type="datetime-local"
                 value={occurredAt}
@@ -247,7 +307,11 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
               disabled={working || !title.trim()}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-40"
             >
-              {working ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {working ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
               {working ? "Recording…" : "Record change"}
             </button>
           </div>
@@ -265,7 +329,11 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
           }
         >
           <div className="flex items-center gap-2">
-            {error ? <RefreshCw className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+            {error ? (
+              <RefreshCw className="h-4 w-4" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
             <span>{error || notice}</span>
           </div>
         </div>
@@ -279,7 +347,9 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
                 <GitBranch className="h-4 w-4 text-cyan-300" />
                 Operational timeline
               </div>
-              <div className="mt-1 text-xs text-slate-600">Newest changes first · up to 200 events from the backend</div>
+              <div className="mt-1 text-xs text-slate-600">
+                Newest changes first · up to 200 events from the backend
+              </div>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-600">
               <Server className="h-3.5 w-3.5" />
@@ -290,14 +360,18 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
 
         {loading ? (
           <div className="flex min-h-64 items-center justify-center gap-2 text-sm text-slate-600">
-            <LoaderCircle className="h-4 w-4 animate-spin" />Loading change history…
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Loading change history…
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="p-12 text-center">
             <GitBranch className="mx-auto h-7 w-7 text-slate-700" />
-            <div className="mt-3 text-sm font-medium text-white">No change events match the current filter</div>
+            <div className="mt-3 text-sm font-medium text-white">
+              No change events match the current filter
+            </div>
             <p className="mt-2 text-xs leading-5 text-slate-600">
-              Record a deployment or configuration change here, then inspect it from an incident's evidence timeline.
+              Record a deployment or configuration change here, then inspect it
+              from an incident's evidence timeline.
             </p>
           </div>
         ) : (
@@ -313,16 +387,36 @@ export const Changes: React.FC<{ user: AuthUser }> = ({ user }) => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-medium text-white">{event.title}</h3>
-                        <span className="rounded-full border border-white/8 px-2 py-1 text-[10px] text-slate-400">{meta.label}</span>
-                        <span className="rounded-full border border-white/8 px-2 py-1 text-[10px] text-slate-600">{event.source}</span>
+                        <h3 className="text-sm font-medium text-white">
+                          {event.title}
+                        </h3>
+                        <span className="rounded-full border border-white/8 px-2 py-1 text-[10px] text-slate-400">
+                          {meta.label}
+                        </span>
+                        <span className="rounded-full border border-white/8 px-2 py-1 text-[10px] text-slate-600">
+                          {event.source}
+                        </span>
                       </div>
-                      {event.description && <p className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">{event.description}</p>}
+                      {event.description && (
+                        <p className="mt-2 max-w-3xl text-xs leading-5 text-slate-500">
+                          {event.description}
+                        </p>
+                      )}
                       <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                        <span>{new Date(event.occurred_at).toLocaleString()}</span>
+                        <span>
+                          {new Date(event.occurred_at).toLocaleString()}
+                        </span>
                         <span>{formatRelativeTime(event.occurred_at)}</span>
-                        {event.external_ref && <span className="rounded-full border border-white/7 px-2 py-1 font-mono text-[10px] text-slate-500">{event.external_ref}</span>}
-                        {event.host_id && <span className="font-mono">host {event.host_id}</span>}
+                        {event.external_ref && (
+                          <span className="rounded-full border border-white/7 px-2 py-1 font-mono text-[10px] text-slate-500">
+                            {event.external_ref}
+                          </span>
+                        )}
+                        {event.host_id && (
+                          <span className="font-mono">
+                            host {event.host_id}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

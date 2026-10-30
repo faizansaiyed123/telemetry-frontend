@@ -31,7 +31,8 @@ function ProtectedApp() {
       window.location.replace("/login");
       return;
     }
-    api.me()
+    api
+      .me()
       .then((currentUser) => setUser(currentUser))
       .catch(() => {
         clearSession();
@@ -41,7 +42,11 @@ function ProtectedApp() {
   }, []);
 
   if (checking || !user) {
-    return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-500">Checking workspace access…</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-500">
+        Checking workspace access…
+      </div>
+    );
   }
 
   let content: React.ReactNode;
@@ -52,29 +57,54 @@ function ProtectedApp() {
   else if (path === "/app/changes") content = <Changes user={user} />;
   else if (path === "/app/slos") content = <SLOs user={user} />;
   else if (path === "/app/hosts") content = <Hosts user={user} />;
-  else if (path === "/app/operations" && user.role === "admin") content = <Operations />;
-  else if (path === "/app/notifications" && user.role === "admin") content = <Notifications />;
-  else if (path === "/app/synthetic-checks") content = <SyntheticChecks user={user} />;
+  else if (path === "/app/operations" && user.role === "admin")
+    content = <Operations />;
+  else if (path === "/app/notifications" && user.role === "admin")
+    content = <Notifications />;
+  else if (path === "/app/synthetic-checks")
+    content = <SyntheticChecks user={user} />;
   else if (path === "/app/services") content = <Services user={user} />;
-  else if (path === "/app/admin" && user.role === "admin") content = <Admin user={user} />;
+  else if (path === "/app/admin" && user.role === "admin")
+    content = <Admin user={user} />;
   else if (path === "/app/settings") content = <Settings user={user} />;
-  else content = (
-    <div className="mx-auto max-w-3xl p-8 text-center">
-      <h1 className="text-3xl font-semibold text-white">Page not found</h1>
-      <p className="mt-3 text-sm text-slate-500">The requested workspace page does not exist or you do not have access.</p>
-      <a href="/app" className="mt-6 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-semibold text-slate-950">Back to overview</a>
-    </div>
-  );
+  else
+    content = (
+      <div className="mx-auto max-w-3xl p-8 text-center">
+        <h1 className="text-3xl font-semibold text-white">Page not found</h1>
+        <p className="mt-3 text-sm text-slate-500">
+          The requested workspace page does not exist or you do not have access.
+        </p>
+        <a
+          href="/app"
+          className="mt-6 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-semibold text-slate-950"
+        >
+          Back to overview
+        </a>
+      </div>
+    );
 
-  return <AppShell user={user} currentPath={path}>{content}</AppShell>;
+  return (
+    <AppShell user={user} currentPath={path}>
+      {content}
+    </AppShell>
+  );
 }
 
 export function App() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
   if (path === "/login") return <Login />;
   if (path === "/signup") return <Signup />;
-  if (path === "/app" || path.startsWith("/app/")) return <ErrorBoundary><ProtectedApp /></ErrorBoundary>;
-  return <ErrorBoundary><Home /></ErrorBoundary>;
+  if (path === "/app" || path.startsWith("/app/"))
+    return (
+      <ErrorBoundary>
+        <ProtectedApp />
+      </ErrorBoundary>
+    );
+  return (
+    <ErrorBoundary>
+      <Home />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

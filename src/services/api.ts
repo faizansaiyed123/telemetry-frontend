@@ -12,7 +12,16 @@ import {
   AlertsResponse,
   Host,
   UserRecord,
-  ApiKey, ApiKeyCreated, AlertRule, Incident, IncidentEvidence, AuditLog, PlatformMetrics, SLO, SLOStatus, ChangeEvent,
+  ApiKey,
+  ApiKeyCreated,
+  AlertRule,
+  Incident,
+  IncidentEvidence,
+  AuditLog,
+  PlatformMetrics,
+  SLO,
+  SLOStatus,
+  ChangeEvent,
   TelemetrySeriesResponse,
   WebSocketTokenResponse,
   NotificationChannel,
@@ -35,7 +44,11 @@ export const API_BASE_URL =
     : "http://localhost:8000";
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public data?: unknown) {
+  constructor(
+    message: string,
+    public status: number,
+    public data?: unknown,
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -54,7 +67,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(API_BASE_URL + path, { ...options, headers });
   } catch (error) {
-    throw new ApiError(error instanceof Error ? error.message : "Network request failed", 0);
+    throw new ApiError(
+      error instanceof Error ? error.message : "Network request failed",
+      0,
+    );
   }
 
   if (response.status === 401) {
@@ -92,7 +108,10 @@ async function authRequest<T>(
   try {
     response = await fetch(API_BASE_URL + path, options);
   } catch (error) {
-    throw new ApiError(error instanceof Error ? error.message : "Network request failed", 0);
+    throw new ApiError(
+      error instanceof Error ? error.message : "Network request failed",
+      0,
+    );
   }
 
   if (!response.ok) {
@@ -110,7 +129,11 @@ async function authRequest<T>(
         message = detail;
       } else if (Array.isArray(detail)) {
         const messages = detail
-          .map((item) => (typeof item === "object" && item && "msg" in item ? String((item as { msg?: unknown }).msg) : null))
+          .map((item) =>
+            typeof item === "object" && item && "msg" in item
+              ? String((item as { msg?: unknown }).msg)
+              : null,
+          )
           .filter((item): item is string => Boolean(item));
         if (messages.length > 0) message = messages.join(". ");
       }
@@ -148,14 +171,19 @@ export const api = {
   },
 
   getWebSocketToken(): Promise<WebSocketTokenResponse> {
-    return request<WebSocketTokenResponse>("/api/auth/ws-token", { method: "POST" });
+    return request<WebSocketTokenResponse>("/api/auth/ws-token", {
+      method: "POST",
+    });
   },
 
   me(): Promise<AuthUser> {
     return request<AuthUser>("/api/auth/me");
   },
 
-  changePassword(payload: { current_password: string; new_password: string }): Promise<{ status: string }> {
+  changePassword(payload: {
+    current_password: string;
+    new_password: string;
+  }): Promise<{ status: string }> {
     return request<{ status: string }>("/api/auth/change-password", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -171,11 +199,16 @@ export const api = {
     return request<CurrentTelemetryResponse>("/api/telemetry/current" + params);
   },
 
-  getTelemetryHistory(limit = 100, hostId?: string): Promise<TelemetryHistoryResponse> {
+  getTelemetryHistory(
+    limit = 100,
+    hostId?: string,
+  ): Promise<TelemetryHistoryResponse> {
     const safeLimit = Math.max(1, Math.min(5000, Math.floor(limit)));
     const params = new URLSearchParams({ limit: String(safeLimit) });
     if (hostId) params.set("host_id", hostId);
-    return request<TelemetryHistoryResponse>("/api/telemetry/history?" + params.toString());
+    return request<TelemetryHistoryResponse>(
+      "/api/telemetry/history?" + params.toString(),
+    );
   },
 
   getTelemetryStats(hostId?: string): Promise<TelemetryStats> {
@@ -194,18 +227,23 @@ export const api = {
     if (params.hostId) query.set("host_id", params.hostId);
     if (params.start) query.set("start", params.start);
     if (params.end) query.set("end", params.end);
-    if (params.bucketSeconds) query.set("bucket_seconds", String(params.bucketSeconds));
-    return request<TelemetrySeriesResponse>("/api/telemetry/series?" + query.toString());
+    if (params.bucketSeconds)
+      query.set("bucket_seconds", String(params.bucketSeconds));
+    return request<TelemetrySeriesResponse>(
+      "/api/telemetry/series?" + query.toString(),
+    );
   },
 
   getAlerts(activeOnly = false): Promise<AlertsResponse> {
     return request<AlertsResponse>("/api/alerts?active_only=" + activeOnly);
   },
 
-  acknowledgeAlert(alertId: string): Promise<{ status: string; alert_id: string }> {
+  acknowledgeAlert(
+    alertId: string,
+  ): Promise<{ status: string; alert_id: string }> {
     return request<{ status: string; alert_id: string }>(
       "/api/alerts/" + encodeURIComponent(alertId) + "/acknowledge",
-      { method: "POST" }
+      { method: "POST" },
     );
   },
 
@@ -214,28 +252,41 @@ export const api = {
   },
 
   startSimulation(): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>("/api/simulation/start", { method: "POST" });
-  },
-
-  pauseSimulation(): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>("/api/simulation/pause", { method: "POST" });
-  },
-
-  resumeSimulation(): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>("/api/simulation/resume", { method: "POST" });
-  },
-
-  resetSimulation(): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>("/api/simulation/reset", { method: "POST" });
-  },
-
-  setSimulationRate(rate: number): Promise<SimulationControlResponse> {
-    return request<SimulationControlResponse>("/api/simulation/rate?rate=" + encodeURIComponent(rate), {
+    return request<SimulationControlResponse>("/api/simulation/start", {
       method: "POST",
     });
   },
 
-  triggerAnomaly(payload: TriggerAnomalyPayload): Promise<TriggerAnomalyResponse> {
+  pauseSimulation(): Promise<SimulationControlResponse> {
+    return request<SimulationControlResponse>("/api/simulation/pause", {
+      method: "POST",
+    });
+  },
+
+  resumeSimulation(): Promise<SimulationControlResponse> {
+    return request<SimulationControlResponse>("/api/simulation/resume", {
+      method: "POST",
+    });
+  },
+
+  resetSimulation(): Promise<SimulationControlResponse> {
+    return request<SimulationControlResponse>("/api/simulation/reset", {
+      method: "POST",
+    });
+  },
+
+  setSimulationRate(rate: number): Promise<SimulationControlResponse> {
+    return request<SimulationControlResponse>(
+      "/api/simulation/rate?rate=" + encodeURIComponent(rate),
+      {
+        method: "POST",
+      },
+    );
+  },
+
+  triggerAnomaly(
+    payload: TriggerAnomalyPayload,
+  ): Promise<TriggerAnomalyResponse> {
     return request<TriggerAnomalyResponse>("/api/simulation/trigger", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -251,23 +302,47 @@ export const api = {
     return request<ApiKey[]>("/api/api-keys" + params);
   },
   createApiKey(hostId: string, name: string): Promise<ApiKeyCreated> {
-    return request<ApiKeyCreated>("/api/api-keys/hosts/" + encodeURIComponent(hostId), {
-      method: "POST", body: JSON.stringify({ name }),
-    });
+    return request<ApiKeyCreated>(
+      "/api/api-keys/hosts/" + encodeURIComponent(hostId),
+      {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      },
+    );
   },
   revokeApiKey(id: string): Promise<ApiKey> {
-    return request<ApiKey>("/api/api-keys/" + encodeURIComponent(id) + "/revoke", { method: "POST" });
+    return request<ApiKey>(
+      "/api/api-keys/" + encodeURIComponent(id) + "/revoke",
+      { method: "POST" },
+    );
   },
 
-  getAlertRules(): Promise<AlertRule[]> { return request<AlertRule[]>("/api/alert-rules"); },
-  createAlertRule(payload: Omit<AlertRule, "id"|"created_by"|"created_at"|"updated_at">): Promise<AlertRule> {
-    return request<AlertRule>("/api/alert-rules", { method: "POST", body: JSON.stringify(payload) });
+  getAlertRules(): Promise<AlertRule[]> {
+    return request<AlertRule[]>("/api/alert-rules");
   },
-  updateAlertRule(id: string, payload: Partial<Omit<AlertRule, "id"|"created_by"|"created_at"|"updated_at">>): Promise<AlertRule> {
-    return request<AlertRule>("/api/alert-rules/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  createAlertRule(
+    payload: Omit<AlertRule, "id" | "created_by" | "created_at" | "updated_at">,
+  ): Promise<AlertRule> {
+    return request<AlertRule>("/api/alert-rules", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  updateAlertRule(
+    id: string,
+    payload: Partial<
+      Omit<AlertRule, "id" | "created_by" | "created_at" | "updated_at">
+    >,
+  ): Promise<AlertRule> {
+    return request<AlertRule>("/api/alert-rules/" + encodeURIComponent(id), {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
   },
   deleteAlertRule(id: string): Promise<void> {
-    return request<void>("/api/alert-rules/" + encodeURIComponent(id), { method: "DELETE" });
+    return request<void>("/api/alert-rules/" + encodeURIComponent(id), {
+      method: "DELETE",
+    });
   },
 
   getIncidents(status?: string): Promise<Incident[]> {
@@ -297,7 +372,9 @@ export const api = {
   },
 
   getIncidentEvidence(id: string): Promise<IncidentEvidence> {
-    return request<IncidentEvidence>("/api/incidents/" + encodeURIComponent(id) + "/evidence");
+    return request<IncidentEvidence>(
+      "/api/incidents/" + encodeURIComponent(id) + "/evidence",
+    );
   },
 
   getChanges(hostId?: string): Promise<ChangeEvent[]> {
@@ -320,19 +397,43 @@ export const api = {
     });
   },
   acknowledgeIncident(id: string): Promise<Incident> {
-    return request<Incident>("/api/incidents/" + encodeURIComponent(id) + "/acknowledge", { method: "POST" });
+    return request<Incident>(
+      "/api/incidents/" + encodeURIComponent(id) + "/acknowledge",
+      { method: "POST" },
+    );
   },
 
-  getSlos(): Promise<SLO[]> { return request<SLO[]>("/api/slos"); },
-  getSloStatus(id: string): Promise<SLOStatus> { return request<SLOStatus>("/api/slos/" + encodeURIComponent(id) + "/status"); },
-  createSlo(payload: Omit<SLO, "id"|"created_by"|"created_at"|"updated_at">): Promise<SLO> {
-    return request<SLO>("/api/slos", { method: "POST", body: JSON.stringify(payload) });
+  getSlos(): Promise<SLO[]> {
+    return request<SLO[]>("/api/slos");
   },
-  updateSlo(id: string, payload: Partial<Omit<SLO, "id"|"created_by"|"created_at"|"updated_at">>): Promise<SLO> {
-    return request<SLO>("/api/slos/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  getSloStatus(id: string): Promise<SLOStatus> {
+    return request<SLOStatus>(
+      "/api/slos/" + encodeURIComponent(id) + "/status",
+    );
+  },
+  createSlo(
+    payload: Omit<SLO, "id" | "created_by" | "created_at" | "updated_at">,
+  ): Promise<SLO> {
+    return request<SLO>("/api/slos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  updateSlo(
+    id: string,
+    payload: Partial<
+      Omit<SLO, "id" | "created_by" | "created_at" | "updated_at">
+    >,
+  ): Promise<SLO> {
+    return request<SLO>("/api/slos/" + encodeURIComponent(id), {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
   },
   deleteSlo(id: string): Promise<void> {
-    return request<void>("/api/slos/" + encodeURIComponent(id), { method: "DELETE" });
+    return request<void>("/api/slos/" + encodeURIComponent(id), {
+      method: "DELETE",
+    });
   },
 
   getPlatformMetrics(): Promise<PlatformMetrics> {
@@ -342,61 +443,191 @@ export const api = {
     const safe = Math.max(1, Math.min(500, Math.floor(limit)));
     return request<AuditLog[]>("/api/observability/audit-logs?limit=" + safe);
   },
-  getNotificationChannels(): Promise<NotificationChannel[]> { return request<NotificationChannel[]>("/api/notification-channels"); },
-  createNotificationChannel(payload: { name: string; url: string; event_types: NotificationEventType[]; min_severity: Severity; enabled?: boolean }): Promise<NotificationChannel> {
-    return request<NotificationChannel>("/api/notification-channels", { method: "POST", body: JSON.stringify(payload) });
+  getNotificationChannels(): Promise<NotificationChannel[]> {
+    return request<NotificationChannel[]>("/api/notification-channels");
   },
-  updateNotificationChannel(id: string, payload: Partial<Pick<NotificationChannel, "name" | "url" | "event_types" | "min_severity" | "enabled">>): Promise<NotificationChannel> {
-    return request<NotificationChannel>("/api/notification-channels/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  createNotificationChannel(payload: {
+    name: string;
+    url: string;
+    event_types: NotificationEventType[];
+    min_severity: Severity;
+    enabled?: boolean;
+  }): Promise<NotificationChannel> {
+    return request<NotificationChannel>("/api/notification-channels", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
-  deleteNotificationChannel(id: string): Promise<void> { return request<void>("/api/notification-channels/" + encodeURIComponent(id), { method: "DELETE" }); },
-  testNotificationChannel(id: string): Promise<NotificationTestResponse> { return request<NotificationTestResponse>("/api/notification-channels/" + encodeURIComponent(id) + "/test", { method: "POST" }); },
-  getNotificationDeliveries(params: { channelId?: string; status?: NotificationDeliveryStatus; limit?: number } = {}): Promise<NotificationDelivery[]> {
+  updateNotificationChannel(
+    id: string,
+    payload: Partial<
+      Pick<
+        NotificationChannel,
+        "name" | "url" | "event_types" | "min_severity" | "enabled"
+      >
+    >,
+  ): Promise<NotificationChannel> {
+    return request<NotificationChannel>(
+      "/api/notification-channels/" + encodeURIComponent(id),
+      { method: "PATCH", body: JSON.stringify(payload) },
+    );
+  },
+  deleteNotificationChannel(id: string): Promise<void> {
+    return request<void>(
+      "/api/notification-channels/" + encodeURIComponent(id),
+      { method: "DELETE" },
+    );
+  },
+  testNotificationChannel(id: string): Promise<NotificationTestResponse> {
+    return request<NotificationTestResponse>(
+      "/api/notification-channels/" + encodeURIComponent(id) + "/test",
+      { method: "POST" },
+    );
+  },
+  getNotificationDeliveries(
+    params: {
+      channelId?: string;
+      status?: NotificationDeliveryStatus;
+      limit?: number;
+    } = {},
+  ): Promise<NotificationDelivery[]> {
     const query = new URLSearchParams();
     if (params.channelId) query.set("channel_id", params.channelId);
     if (params.status) query.set("status", params.status);
-    query.set("limit", String(Math.max(1, Math.min(500, Math.floor(params.limit ?? 100)))));
-    return request<NotificationDelivery[]>("/api/notification-channels/deliveries?" + query.toString());
+    query.set(
+      "limit",
+      String(Math.max(1, Math.min(500, Math.floor(params.limit ?? 100)))),
+    );
+    return request<NotificationDelivery[]>(
+      "/api/notification-channels/deliveries?" + query.toString(),
+    );
   },
   retryNotificationDelivery(id: string): Promise<NotificationTestResponse> {
-    return request<NotificationTestResponse>("/api/notification-channels/deliveries/" + encodeURIComponent(id) + "/retry", { method: "POST" });
+    return request<NotificationTestResponse>(
+      "/api/notification-channels/deliveries/" +
+        encodeURIComponent(id) +
+        "/retry",
+      { method: "POST" },
+    );
   },
 
-  getSyntheticChecks(): Promise<SyntheticCheck[]> { return request<SyntheticCheck[]>("/api/synthetic-checks"); },
-  createSyntheticCheck(payload: { name: string; url: string; service_id?: string | null; method: "GET" | "HEAD"; interval_seconds: number; timeout_seconds: number; expected_status: number; enabled?: boolean }): Promise<SyntheticCheck> {
-    return request<SyntheticCheck>("/api/synthetic-checks", { method: "POST", body: JSON.stringify(payload) });
+  getSyntheticChecks(): Promise<SyntheticCheck[]> {
+    return request<SyntheticCheck[]>("/api/synthetic-checks");
   },
-  updateSyntheticCheck(id: string, payload: Partial<{ name: string; url: string; service_id: string | null; method: "GET" | "HEAD"; interval_seconds: number; timeout_seconds: number; expected_status: number; enabled: boolean }>): Promise<SyntheticCheck> {
-    return request<SyntheticCheck>("/api/synthetic-checks/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  createSyntheticCheck(payload: {
+    name: string;
+    url: string;
+    service_id?: string | null;
+    method: "GET" | "HEAD";
+    interval_seconds: number;
+    timeout_seconds: number;
+    expected_status: number;
+    enabled?: boolean;
+  }): Promise<SyntheticCheck> {
+    return request<SyntheticCheck>("/api/synthetic-checks", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
-  deleteSyntheticCheck(id: string): Promise<void> { return request<void>("/api/synthetic-checks/" + encodeURIComponent(id), { method: "DELETE" }); },
+  updateSyntheticCheck(
+    id: string,
+    payload: Partial<{
+      name: string;
+      url: string;
+      service_id: string | null;
+      method: "GET" | "HEAD";
+      interval_seconds: number;
+      timeout_seconds: number;
+      expected_status: number;
+      enabled: boolean;
+    }>,
+  ): Promise<SyntheticCheck> {
+    return request<SyntheticCheck>(
+      "/api/synthetic-checks/" + encodeURIComponent(id),
+      { method: "PATCH", body: JSON.stringify(payload) },
+    );
+  },
+  deleteSyntheticCheck(id: string): Promise<void> {
+    return request<void>("/api/synthetic-checks/" + encodeURIComponent(id), {
+      method: "DELETE",
+    });
+  },
   runSyntheticCheck(id: string): Promise<SyntheticCheckRun> {
-    return request<SyntheticCheckRun>("/api/synthetic-checks/" + encodeURIComponent(id) + "/run", { method: "POST" });
+    return request<SyntheticCheckRun>(
+      "/api/synthetic-checks/" + encodeURIComponent(id) + "/run",
+      { method: "POST" },
+    );
   },
-  getSyntheticCheckRuns(id: string, limit = 100): Promise<SyntheticCheckRunList> {
+  getSyntheticCheckRuns(
+    id: string,
+    limit = 100,
+  ): Promise<SyntheticCheckRunList> {
     const safe = Math.max(1, Math.min(500, Math.floor(limit)));
-    return request<SyntheticCheckRunList>("/api/synthetic-checks/" + encodeURIComponent(id) + "/runs?limit=" + safe);
+    return request<SyntheticCheckRunList>(
+      "/api/synthetic-checks/" + encodeURIComponent(id) + "/runs?limit=" + safe,
+    );
   },
 
-  getServices(): Promise<Service[]> { return request<Service[]>("/api/services"); },
-  createService(payload: { name: string; environment: string; description?: string | null }): Promise<Service> {
-    return request<Service>("/api/services", { method: "POST", body: JSON.stringify(payload) });
+  getServices(): Promise<Service[]> {
+    return request<Service[]>("/api/services");
   },
-  updateService(id: string, payload: Partial<Pick<Service, "name" | "environment" | "description">>): Promise<Service> {
-    return request<Service>("/api/services/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(payload) });
+  createService(payload: {
+    name: string;
+    environment: string;
+    description?: string | null;
+  }): Promise<Service> {
+    return request<Service>("/api/services", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
-  deleteService(id: string): Promise<void> { return request<void>("/api/services/" + encodeURIComponent(id), { method: "DELETE" }); },
+  updateService(
+    id: string,
+    payload: Partial<Pick<Service, "name" | "environment" | "description">>,
+  ): Promise<Service> {
+    return request<Service>("/api/services/" + encodeURIComponent(id), {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+  deleteService(id: string): Promise<void> {
+    return request<void>("/api/services/" + encodeURIComponent(id), {
+      method: "DELETE",
+    });
+  },
   getServiceDependencies(serviceId: string): Promise<ServiceDependency[]> {
-    return request<ServiceDependency[]>("/api/services/" + encodeURIComponent(serviceId) + "/dependencies");
+    return request<ServiceDependency[]>(
+      "/api/services/" + encodeURIComponent(serviceId) + "/dependencies",
+    );
   },
-  addServiceDependency(serviceId: string, payload: { target_service_id: string; relationship: string; criticality: ServiceDependency["criticality"] }): Promise<ServiceDependency> {
-    return request<ServiceDependency>("/api/services/" + encodeURIComponent(serviceId) + "/dependencies", { method: "POST", body: JSON.stringify(payload) });
+  addServiceDependency(
+    serviceId: string,
+    payload: {
+      target_service_id: string;
+      relationship: string;
+      criticality: ServiceDependency["criticality"];
+    },
+  ): Promise<ServiceDependency> {
+    return request<ServiceDependency>(
+      "/api/services/" + encodeURIComponent(serviceId) + "/dependencies",
+      { method: "POST", body: JSON.stringify(payload) },
+    );
   },
-  deleteServiceDependency(serviceId: string, targetServiceId: string): Promise<void> {
-    return request<void>("/api/services/" + encodeURIComponent(serviceId) + "/dependencies/" + encodeURIComponent(targetServiceId), { method: "DELETE" });
+  deleteServiceDependency(
+    serviceId: string,
+    targetServiceId: string,
+  ): Promise<void> {
+    return request<void>(
+      "/api/services/" +
+        encodeURIComponent(serviceId) +
+        "/dependencies/" +
+        encodeURIComponent(targetServiceId),
+      { method: "DELETE" },
+    );
   },
-  getTopology(): Promise<TopologyResponse> { return request<TopologyResponse>("/api/topology"); },
-
+  getTopology(): Promise<TopologyResponse> {
+    return request<TopologyResponse>("/api/topology");
+  },
 
   createHost(payload: { name: string; environment: string }): Promise<Host> {
     return request<Host>("/api/hosts", {
@@ -405,7 +636,10 @@ export const api = {
     });
   },
 
-  updateHost(id: string, payload: Partial<Pick<Host, "name" | "environment" | "is_active">>): Promise<Host> {
+  updateHost(
+    id: string,
+    payload: Partial<Pick<Host, "name" | "environment" | "is_active">>,
+  ): Promise<Host> {
     return request<Host>("/api/hosts/" + encodeURIComponent(id), {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -413,21 +647,30 @@ export const api = {
   },
 
   deleteHost(id: string): Promise<void> {
-    return request<void>("/api/hosts/" + encodeURIComponent(id), { method: "DELETE" });
+    return request<void>("/api/hosts/" + encodeURIComponent(id), {
+      method: "DELETE",
+    });
   },
 
   getUsers(): Promise<UserRecord[]> {
     return request<UserRecord[]>("/api/users");
   },
 
-  createUser(payload: { email: string; password: string; role: string }): Promise<UserRecord> {
+  createUser(payload: {
+    email: string;
+    password: string;
+    role: string;
+  }): Promise<UserRecord> {
     return request<UserRecord>("/api/users", {
       method: "POST",
       body: JSON.stringify(payload),
     });
   },
 
-  updateUser(id: string, payload: Partial<{ role: string; is_active: boolean; password: string }>): Promise<UserRecord> {
+  updateUser(
+    id: string,
+    payload: Partial<{ role: string; is_active: boolean; password: string }>,
+  ): Promise<UserRecord> {
     return request<UserRecord>("/api/users/" + encodeURIComponent(id), {
       method: "PATCH",
       body: JSON.stringify(payload),

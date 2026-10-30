@@ -1,6 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatMetricNumber, formatMetricValue, formatUptime, formatTimestamp, getMetricUnit } from "../src/utils/formatters.js";
+import {
+  formatMetricNumber,
+  formatMetricValue,
+  formatUptime,
+  formatTimestamp,
+  getMetricUnit,
+} from "../src/utils/formatters.js";
 import { WebSocketMessage } from "../src/types/websocket.js";
 import { Alert } from "../src/types/alerts.js";
 import { TelemetryEvent } from "../src/types/telemetry.js";
@@ -144,7 +150,11 @@ describe("Host telemetry freshness", () => {
   });
 
   it("distinguishes inactive hosts from silent hosts", () => {
-    const result = getTelemetryFreshness("2026-09-22T09:59:59.000Z", false, now);
+    const result = getTelemetryFreshness(
+      "2026-09-22T09:59:59.000Z",
+      false,
+      now,
+    );
     assert.equal(result.status, "inactive");
     assert.equal(result.label, "Inactive");
     assert.equal(result.ageSeconds, null);
@@ -193,7 +203,11 @@ describe("Alert Deduplication and Resolution Lifecycle Logic", () => {
     } else {
       alertList.unshift(alert1Updated);
     }
-    assert.equal(alertList.length, 1, "Alert count should remain 1 without duplicates");
+    assert.equal(
+      alertList.length,
+      1,
+      "Alert count should remain 1 without duplicates",
+    );
     assert.equal(alertList[0].value, 92.5);
     assert.equal(alertList[0].severity, "CRITICAL");
 
@@ -222,7 +236,8 @@ describe("WebSocket authentication handoff", () => {
     const requests: Array<{ url: string; init?: RequestInit }> = [];
     globalThis.window = {
       localStorage: {
-        getItem: (key: string) => key === "telemetry_access_token" ? "long-lived-jwt" : null,
+        getItem: (key: string) =>
+          key === "telemetry_access_token" ? "long-lived-jwt" : null,
         removeItem: () => undefined,
       },
       location: { pathname: "/app", replace: () => undefined },
@@ -258,26 +273,32 @@ describe("WebSocket authentication handoff", () => {
   });
 });
 
-describe("Live telemetry host selection", () => {describe("Current telemetry host scoping", () => {
-  it("adds host_id to current telemetry requests", async () => {
-    const originalWindow = globalThis.window;
-    const originalFetch = globalThis.fetch;
-    const calls: string[] = [];
-    globalThis.window = { localStorage: { getItem: () => "token", removeItem: () => undefined }, location: { pathname: "/app", replace: () => undefined } } as unknown as Window & typeof globalThis;
-    globalThis.fetch = async (input: RequestInfo | URL) => {
-      calls.push(String(input));
-      return new Response(JSON.stringify({ event: null, available: false }), { status: 200, headers: { "Content-Type": "application/json" } });
-    };
-    try {
-      await api.getCurrentTelemetry("host-123");
-      assert.match(calls[0], /\/api\/telemetry\/current\?host_id=host-123$/);
-    } finally {
-      globalThis.fetch = originalFetch;
-      globalThis.window = originalWindow;
-    }
+describe("Live telemetry host selection", () => {
+  describe("Current telemetry host scoping", () => {
+    it("adds host_id to current telemetry requests", async () => {
+      const originalWindow = globalThis.window;
+      const originalFetch = globalThis.fetch;
+      const calls: string[] = [];
+      globalThis.window = {
+        localStorage: { getItem: () => "token", removeItem: () => undefined },
+        location: { pathname: "/app", replace: () => undefined },
+      } as unknown as Window & typeof globalThis;
+      globalThis.fetch = async (input: RequestInfo | URL) => {
+        calls.push(String(input));
+        return new Response(JSON.stringify({ event: null, available: false }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      };
+      try {
+        await api.getCurrentTelemetry("host-123");
+        assert.match(calls[0], /\/api\/telemetry\/current\?host_id=host-123$/);
+      } finally {
+        globalThis.fetch = originalFetch;
+        globalThis.window = originalWindow;
+      }
+    });
   });
-});
-
 
   const now = Date.parse("2026-09-24T09:00:00.000Z");
 
@@ -330,7 +351,10 @@ describe("Live telemetry host selection", () => {describe("Current telemetry hos
 
   it("returns null when there are no active hosts", () => {
     assert.equal(
-      selectPreferredTelemetryHost([host("disabled", "telemetry-agent/1.0", null, false)], now),
+      selectPreferredTelemetryHost(
+        [host("disabled", "telemetry-agent/1.0", null, false)],
+        now,
+      ),
       null,
     );
   });

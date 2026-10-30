@@ -1,4 +1,3 @@
-
 export type TelemetryFreshness = "online" | "stale" | "silent" | "inactive";
 
 export interface TelemetryFreshnessResult {

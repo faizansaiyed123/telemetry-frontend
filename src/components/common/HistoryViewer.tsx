@@ -41,7 +41,9 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-bold text-slate-100">Historical Telemetry Log</h3>
+          <h3 className="text-sm font-bold text-slate-100">
+            Historical Telemetry Log
+          </h3>
           <span className="text-[11px] font-mono text-slate-500">
             ({events.length} records fetched from backend)
           </span>
@@ -69,7 +71,9 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({
             className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
             title="Refresh historical logs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+            />
           </button>
 
           {events.length > 0 && (
@@ -111,19 +115,43 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
-              {events.slice().reverse().map((ev) => (
-                <tr key={ev.sequence} className="hover:bg-slate-800/40 transition-colors">
-                  <td className="py-1.5 px-2 text-cyan-400 font-semibold">#{ev.sequence}</td>
-                  <td className="py-1.5 px-2 text-slate-400">{formatTimestamp(ev.timestamp)}</td>
-                  <td className="py-1.5 px-2 text-slate-200">{ev.cpu.toFixed(1)}%</td>
-                  <td className="py-1.5 px-2 text-slate-200">{ev.memory.toFixed(1)}%</td>
-                  <td className="py-1.5 px-2 text-slate-200">{ev.temperature.toFixed(1)}°C</td>
-                  <td className="py-1.5 px-2 text-slate-200">{ev.network_mbps.toFixed(1)} Mb</td>
-                  <td className="py-1.5 px-2 text-slate-200">{Math.round(ev.requests_per_second)}</td>
-                  <td className="py-1.5 px-2 text-amber-300">{ev.latency_ms.toFixed(1)} ms</td>
-                  <td className="py-1.5 px-2 text-rose-300">{ev.error_rate.toFixed(2)}%</td>
-                </tr>
-              ))}
+              {events
+                .slice()
+                .reverse()
+                .map((ev) => (
+                  <tr
+                    key={ev.sequence}
+                    className="hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="py-1.5 px-2 text-cyan-400 font-semibold">
+                      #{ev.sequence}
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-400">
+                      {formatTimestamp(ev.timestamp)}
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-200">
+                      {ev.cpu.toFixed(1)}%
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-200">
+                      {ev.memory.toFixed(1)}%
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-200">
+                      {ev.temperature.toFixed(1)}°C
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-200">
+                      {ev.network_mbps.toFixed(1)} Mb
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-200">
+                      {Math.round(ev.requests_per_second)}
+                    </td>
+                    <td className="py-1.5 px-2 text-amber-300">
+                      {ev.latency_ms.toFixed(1)} ms
+                    </td>
+                    <td className="py-1.5 px-2 text-rose-300">
+                      {ev.error_rate.toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

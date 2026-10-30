@@ -78,19 +78,32 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
                 const pct = metricData?.pct_change;
 
                 return (
-                  <tr key={cfg.key} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-2.5 font-medium text-slate-200">{cfg.label}</td>
-                    <td className="py-2.5 text-slate-400">
-                      {metricData?.min !== null ? `${metricData.min.toFixed(1)}${unit}` : "--"}
+                  <tr
+                    key={cfg.key}
+                    className="hover:bg-slate-800/30 transition-colors"
+                  >
+                    <td className="py-2.5 font-medium text-slate-200">
+                      {cfg.label}
                     </td>
                     <td className="py-2.5 text-slate-400">
-                      {metricData?.max !== null ? `${metricData.max.toFixed(1)}${unit}` : "--"}
+                      {metricData?.min !== null
+                        ? `${metricData.min.toFixed(1)}${unit}`
+                        : "--"}
+                    </td>
+                    <td className="py-2.5 text-slate-400">
+                      {metricData?.max !== null
+                        ? `${metricData.max.toFixed(1)}${unit}`
+                        : "--"}
                     </td>
                     <td className="py-2.5 text-cyan-300 font-semibold">
-                      {metricData?.avg !== null ? `${metricData.avg.toFixed(1)}${unit}` : "--"}
+                      {metricData?.avg !== null
+                        ? `${metricData.avg.toFixed(1)}${unit}`
+                        : "--"}
                     </td>
                     <td className="py-2.5 text-white font-bold">
-                      {metricData?.latest !== null ? `${metricData.latest.toFixed(1)}${unit}` : "--"}
+                      {metricData?.latest !== null
+                        ? `${metricData.latest.toFixed(1)}${unit}`
+                        : "--"}
                     </td>
                     <td className="py-2.5">
                       {pct !== null && pct !== undefined ? (
@@ -99,8 +112,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
                             pct > 0
                               ? "text-emerald-400"
                               : pct < 0
-                              ? "text-rose-400"
-                              : "text-slate-400"
+                                ? "text-rose-400"
+                                : "text-slate-400"
                           }`}
                         >
                           {pct > 0 ? (
@@ -108,7 +121,9 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
                           ) : pct < 0 ? (
                             <TrendingDown className="w-3 h-3" />
                           ) : null}
-                          {pct > 0 ? `+${pct.toFixed(1)}%` : `${pct.toFixed(1)}%`}
+                          {pct > 0
+                            ? `+${pct.toFixed(1)}%`
+                            : `${pct.toFixed(1)}%`}
                         </span>
                       ) : (
                         <span className="text-slate-500">0.0%</span>

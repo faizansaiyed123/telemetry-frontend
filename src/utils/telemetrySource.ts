@@ -13,11 +13,18 @@ export function selectPreferredTelemetryHost(
     .sort((a, b) => {
       const aSeen = Date.parse(a.last_seen_at ?? "");
       const bSeen = Date.parse(b.last_seen_at ?? "");
-      return (Number.isFinite(bSeen) ? bSeen : 0) - (Number.isFinite(aSeen) ? aSeen : 0);
+      return (
+        (Number.isFinite(bSeen) ? bSeen : 0) -
+        (Number.isFinite(aSeen) ? aSeen : 0)
+      );
     });
 
   const reportingAgent = agents.find((host) => {
-    const freshness = getTelemetryFreshness(host.last_seen_at, host.is_active, nowMs);
+    const freshness = getTelemetryFreshness(
+      host.last_seen_at,
+      host.is_active,
+      nowMs,
+    );
     return freshness.status === "online" || freshness.status === "stale";
   });
 

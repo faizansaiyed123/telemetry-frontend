@@ -13,7 +13,8 @@ export function useTelemetry(hostId?: string | null) {
   const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [historyEvents, setHistoryEvents] = useState<TelemetryEvent[]>([]);
   const [lastReceivedAt, setLastReceivedAt] = useState<number | null>(null);
-  const [sequenceGapDetected, setSequenceGapDetected] = useState<boolean>(false);
+  const [sequenceGapDetected, setSequenceGapDetected] =
+    useState<boolean>(false);
 
   const lastSeqRef = useRef<number | null>(null);
   const currentRef = useRef<TelemetryEvent | null>(null);
@@ -23,7 +24,8 @@ export function useTelemetry(hostId?: string | null) {
   const flushPending = useCallback(() => {
     if (pendingEventsRef.current.length === 0) return;
 
-    const latest = pendingEventsRef.current[pendingEventsRef.current.length - 1];
+    const latest =
+      pendingEventsRef.current[pendingEventsRef.current.length - 1];
     const incomingBatch = [...pendingEventsRef.current];
     pendingEventsRef.current = [];
 
@@ -31,7 +33,9 @@ export function useTelemetry(hostId?: string | null) {
     currentRef.current = latest;
     setCurrent(latest);
 
-    setStreamBuffer((prev) => [...prev, ...incomingBatch].slice(-MAX_CHART_BUFFER));
+    setStreamBuffer((prev) =>
+      [...prev, ...incomingBatch].slice(-MAX_CHART_BUFFER),
+    );
     setLastReceivedAt(Date.now());
   }, []);
 
@@ -40,9 +44,15 @@ export function useTelemetry(hostId?: string | null) {
       if (hostId && event.host_id !== hostId) return;
       if (!hostId && event.host_id) return;
 
-      if (lastSeqRef.current !== null && event.sequence > lastSeqRef.current + 1) {
+      if (
+        lastSeqRef.current !== null &&
+        event.sequence > lastSeqRef.current + 1
+      ) {
         setSequenceGapDetected(true);
-      } else if (lastSeqRef.current !== null && event.sequence <= lastSeqRef.current) {
+      } else if (
+        lastSeqRef.current !== null &&
+        event.sequence <= lastSeqRef.current
+      ) {
         setSequenceGapDetected(false);
       }
       lastSeqRef.current = event.sequence;
@@ -75,24 +85,27 @@ export function useTelemetry(hostId?: string | null) {
     }
   }, [hostId]);
 
-  const fetchHistory = useCallback(async (limit = 100) => {
-    if (!hostId) {
-      setHistoryEvents([]);
-      return [];
-    }
-    try {
-      setHistoryLoading(true);
-      const data = await api.getTelemetryHistory(limit, hostId);
-      setHistoryEvents(data.events);
-      return data.events;
-    } catch (err) {
-      console.error("Failed to load telemetry history:", err);
-      setHistoryEvents([]);
-      return [];
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [hostId]);
+  const fetchHistory = useCallback(
+    async (limit = 100) => {
+      if (!hostId) {
+        setHistoryEvents([]);
+        return [];
+      }
+      try {
+        setHistoryLoading(true);
+        const data = await api.getTelemetryHistory(limit, hostId);
+        setHistoryEvents(data.events);
+        return data.events;
+      } catch (err) {
+        console.error("Failed to load telemetry history:", err);
+        setHistoryEvents([]);
+        return [];
+      } finally {
+        setHistoryLoading(false);
+      }
+    },
+    [hostId],
+  );
 
   const clearStream = useCallback(() => {
     setCurrent(null);
@@ -115,7 +128,10 @@ export function useTelemetry(hostId?: string | null) {
     let mounted = true;
     clearStream();
 
-    if (!hostId) return () => { mounted = false; };
+    if (!hostId)
+      return () => {
+        mounted = false;
+      };
 
     async function init() {
       const [currRes, histRes, statsRes] = await Promise.allSettled([

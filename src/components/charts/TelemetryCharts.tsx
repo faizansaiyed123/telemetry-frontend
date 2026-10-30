@@ -16,26 +16,70 @@ interface ChartDataset {
 }
 
 const COMPUTE_DATASETS: ChartDataset[] = [
-  { label: "CPU Usage", key: "cpu", color: "#38bdf8", unit: "%", maxExpected: 100 },
-  { label: "Memory", key: "memory", color: "#818cf8", unit: "%", maxExpected: 100 },
-  { label: "Temperature", key: "temperature", color: "#fb923c", unit: "°C", maxExpected: 110 },
+  {
+    label: "CPU Usage",
+    key: "cpu",
+    color: "#38bdf8",
+    unit: "%",
+    maxExpected: 100,
+  },
+  {
+    label: "Memory",
+    key: "memory",
+    color: "#818cf8",
+    unit: "%",
+    maxExpected: 100,
+  },
+  {
+    label: "Temperature",
+    key: "temperature",
+    color: "#fb923c",
+    unit: "°C",
+    maxExpected: 110,
+  },
 ];
 
 const TRAFFIC_DATASETS: ChartDataset[] = [
-  { label: "Throughput", key: "network_mbps", color: "#34d399", unit: "Mbps", maxExpected: 400 },
-  { label: "Req / Sec", key: "requests_per_second", color: "#22d3ee", unit: "req/s", maxExpected: 1500 },
+  {
+    label: "Throughput",
+    key: "network_mbps",
+    color: "#34d399",
+    unit: "Mbps",
+    maxExpected: 400,
+  },
+  {
+    label: "Req / Sec",
+    key: "requests_per_second",
+    color: "#22d3ee",
+    unit: "req/s",
+    maxExpected: 1500,
+  },
 ];
 
 const LATENCY_DATASETS: ChartDataset[] = [
-  { label: "Latency", key: "latency_ms", color: "#f59e0b", unit: "ms", maxExpected: 120 },
-  { label: "Error Rate", key: "error_rate", color: "#f43f5e", unit: "%", maxExpected: 15 },
+  {
+    label: "Latency",
+    key: "latency_ms",
+    color: "#f59e0b",
+    unit: "ms",
+    maxExpected: 120,
+  },
+  {
+    label: "Error Rate",
+    key: "error_rate",
+    color: "#f43f5e",
+    unit: "%",
+    maxExpected: 15,
+  },
 ];
 
 export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
   streamBuffer,
   activeAnomalyMetric,
 }) => {
-  const [activeTab, setActiveTab] = useState<"all" | "compute" | "traffic" | "latency">("all");
+  const [activeTab, setActiveTab] = useState<
+    "all" | "compute" | "traffic" | "latency"
+  >("all");
 
   return (
     <div className="space-y-4">
@@ -200,7 +244,8 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
       ctx.stroke();
     }
 
-    const anomalyKey = activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
+    const anomalyKey =
+      activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
     datasets.forEach((ds) => {
       if (data.length < 2) return;
 
@@ -261,7 +306,10 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
         <div className="flex flex-wrap gap-x-3 gap-y-1 my-2">
           {datasets.map((ds) => {
             const val = latestEvent ? latestEvent[ds.key] : null;
-            const anomalyKey = activeAnomalyMetric === "latency" ? "latency_ms" : activeAnomalyMetric;
+            const anomalyKey =
+              activeAnomalyMetric === "latency"
+                ? "latency_ms"
+                : activeAnomalyMetric;
             const isAnomaly = ds.key === anomalyKey;
 
             return (
@@ -279,7 +327,9 @@ const MultiStreamCanvasCard: React.FC<MultiStreamCanvasCardProps> = ({
                 />
                 <span className="text-slate-400 text-[11px]">{ds.label}:</span>
                 <span className="font-bold text-white">
-                  {val !== null && val !== undefined ? Number(val).toFixed(1) : "--"}
+                  {val !== null && val !== undefined
+                    ? Number(val).toFixed(1)
+                    : "--"}
                 </span>
                 <span className="text-slate-500 text-[10px]">{ds.unit}</span>
               </div>

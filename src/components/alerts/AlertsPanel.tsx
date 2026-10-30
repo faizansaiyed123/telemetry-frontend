@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { AlertTriangle, CheckCircle, Info, ShieldAlert, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
 import { Alert, AlertSeverity } from "../../types/alerts.js";
 import { formatTimestamp } from "../../utils/formatters.js";
 
@@ -20,7 +26,9 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
 }) => {
   const [filterActiveOnly, setFilterActiveOnly] = useState<boolean>(false);
 
-  const displayedAlerts = filterActiveOnly ? alerts.filter((a) => !a.resolved) : alerts;
+  const displayedAlerts = filterActiveOnly
+    ? alerts.filter((a) => !a.resolved)
+    : alerts;
 
   const getSeverityBadge = (severity: AlertSeverity, resolved: boolean) => {
     if (resolved) {
@@ -62,12 +70,14 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
       id="alerts-panel"
       className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-lg h-full"
     >
-      <div      >
+      <div>
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div
               className={`p-1.5 rounded-lg ${
-                activeCount > 0 ? "bg-rose-500/10 text-rose-400" : "bg-slate-800 text-slate-400"
+                activeCount > 0
+                  ? "bg-rose-500/10 text-rose-400"
+                  : "bg-slate-800 text-slate-400"
               }`}
             >
               <AlertTriangle className="w-4 h-4" />
@@ -103,8 +113,7 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
               title="Refresh alerts from backend"
               className="p-1 rounded bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 cursor-pointer"
             >
-              <span className="sr-only">Refresh</span>
-              ↻
+              <span className="sr-only">Refresh</span>↻
             </button>
           </div>
         </div>
@@ -112,7 +121,10 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
         {error && (
           <div className="p-3 mb-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex justify-between items-center">
             <span>{error}</span>
-            <button onClick={onRefresh} className="underline hover:text-rose-100">
+            <button
+              onClick={onRefresh}
+              className="underline hover:text-rose-100"
+            >
               Retry
             </button>
           </div>
@@ -123,9 +135,12 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
               <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-2">
                 <CheckCircle className="w-5 h-5" />
               </div>
-              <p className="text-sm font-medium text-slate-300">No anomalies detected</p>
+              <p className="text-sm font-medium text-slate-300">
+                No anomalies detected
+              </p>
               <p className="text-xs text-slate-500 mt-1 max-w-xs">
-                All telemetry metrics are currently within nominal statistical control limits (z &lt; 3.0).
+                All telemetry metrics are currently within nominal statistical
+                control limits (z &lt; 3.0).
               </p>
             </div>
           ) : (
@@ -136,10 +151,10 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
                   alert.resolved
                     ? "bg-slate-950/30 border-slate-800/80 text-slate-400 opacity-70"
                     : alert.severity === "CRITICAL"
-                    ? "bg-rose-950/20 border-rose-500/40 text-rose-200 shadow-sm shadow-rose-950/20"
-                    : alert.severity === "WARNING"
-                    ? "bg-amber-950/20 border-amber-500/40 text-amber-200 shadow-sm shadow-amber-950/20"
-                    : "bg-blue-950/20 border-blue-500/40 text-blue-200"
+                      ? "bg-rose-950/20 border-rose-500/40 text-rose-200 shadow-sm shadow-rose-950/20"
+                      : alert.severity === "WARNING"
+                        ? "bg-amber-950/20 border-amber-500/40 text-amber-200 shadow-sm shadow-amber-950/20"
+                        : "bg-blue-950/20 border-blue-500/40 text-blue-200"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -154,15 +169,23 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
                   </span>
                 </div>
 
-                <p className="font-medium text-slate-200 mb-2">{alert.message}</p>
+                <p className="font-medium text-slate-200 mb-2">
+                  {alert.message}
+                </p>
 
                 <div className="flex items-center justify-between pt-1.5 border-t border-slate-800/60 font-mono text-[11px] text-slate-400">
                   <div className="flex gap-3">
                     <span>
-                      Observed: <strong className="text-white">{alert.value.toFixed(1)}</strong>
+                      Observed:{" "}
+                      <strong className="text-white">
+                        {alert.value.toFixed(1)}
+                      </strong>
                     </span>
                     <span>
-                      Baseline: <strong className="text-slate-300">{alert.baseline.toFixed(1)}</strong>
+                      Baseline:{" "}
+                      <strong className="text-slate-300">
+                        {alert.baseline.toFixed(1)}
+                      </strong>
                     </span>
                   </div>
                   {alert.resolved && alert.resolved_at && (
