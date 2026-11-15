@@ -19,19 +19,14 @@ import {
   Webhook,
   TimerReset,
   Network,
-  Clock3,
-  Trash2,
 } from "lucide-react";
 import type { AuthUser } from "../../types/app.js";
 import { clearSession } from "../../lib/session.js";
-import { api } from "../../services/api.js";
 
 type Props = { user: AuthUser; children: React.ReactNode; currentPath: string };
 
 export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [endingDemo, setEndingDemo] = useState(false);
-  const [demoEndError, setDemoEndError] = useState<string | null>(null);
   const items = useMemo(
     () => [
       {
@@ -109,37 +104,13 @@ export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
     ],
     [],
   );
-  const demoRoutes = ["/app", "/app/alerts", "/app/incidents"];
-  const visible = items.filter(
-    (item) =>
-      item.roles.includes(user.role) &&
-      (!user.is_demo || demoRoutes.includes(item.href)),
-  );
+  const visible = items.filter((item) => item.roles.includes(user.role));
   const active = (href: string) =>
     href === "/app" ? currentPath === "/app" : currentPath.startsWith(href);
   const signOut = () => {
     clearSession();
     window.location.href = "/";
   };
-
-  async function endDemo() {
-    if (endingDemo) return;
-    setEndingDemo(true);
-    setDemoEndError(null);
-    try {
-      await api.endDemoSession();
-      clearSession();
-      window.location.replace("/");
-    } catch (err) {
-      setDemoEndError(
-        err instanceof Error
-          ? err.message
-          : "Unable to end this demo session. Please retry.",
-      );
-    } finally {
-      setEndingDemo(false);
-    }
-  }
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_90%_10%,rgba(99,102,241,0.08),transparent_26%)]" />
@@ -197,22 +168,6 @@ export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
               ))}
             </nav>
           </div>
-          {user.is_demo && (
-            <div className="mx-4 mt-5 rounded-xl border border-cyan-500/20 bg-cyan-500/[0.05] p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-200">
-                Temporary demo workspace
-              </div>
-              <p className="mt-2 text-xs leading-5 text-slate-400">
-                Synthetic telemetry and incidents are isolated to this visitor session.
-              </p>
-              {user.demo_expires_at && (
-                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500">
-                  <Clock3 className="h-3 w-3" />
-                  Expires {new Date(user.demo_expires_at).toLocaleString()}
-                </div>
-              )}
-            </div>
-          )}
           <div className="mt-auto p-4">
             <div className="rounded-2xl border border-white/7 bg-white/[0.025] p-4">
               <div className="flex items-center gap-3">
@@ -229,38 +184,22 @@ export const AppShell: React.FC<Props> = ({ user, children, currentPath }) => {
                   </div>
                 </div>
               </div>
-              {user.is_demo ? (
-                <button
-                  onClick={() => void endDemo()}
-                  disabled={endingDemo}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-50"
+              <div className="mt-4 flex gap-2">
+                <a
+                  href="/app/settings"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/7 bg-white/[0.02] px-3 py-2 text-xs text-slate-400 hover:text-white"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {endingDemo ? "Ending demo…" : "End demo & delete data"}
+                  <Settings className="h-3.5 w-3.5" />
+                  Settings
+                </a>
+                <button
+                  onClick={signOut}
+                  className="flex items-center justify-center gap-2 rounded-lg border border-rose-500/15 bg-rose-500/5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Sign out
                 </button>
-              ) : (
-                <div className="mt-4 flex gap-2">
-                  <a
-                    href="/app/settings"
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/7 bg-white/[0.02] px-3 py-2 text-xs text-slate-400 hover:text-white"
-                  >
-                    <Settings className="h-3.5 w-3.5" />
-                    Settings
-                  </a>
-                  <button
-                    onClick={signOut}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-rose-500/15 bg-rose-500/5 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Sign out
-                  </button>
-                </div>
-              )}
-              {demoEndError && (
-                <div role="alert" className="mt-3 text-xs leading-5 text-rose-300">
-                  {demoEndError}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </aside>

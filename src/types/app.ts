@@ -117,8 +117,6 @@ export interface AuthUser {
   email: string;
   role: string;
   is_active: boolean;
-  is_demo?: boolean;
-  demo_expires_at?: string | null;
 }
 
 export interface AuthResponse {

@@ -43,10 +43,6 @@ export const API_BASE_URL =
     ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")
     : "http://localhost:8000";
 
-export const DEMO_ENABLED =
-  typeof import.meta !== "undefined" &&
-  import.meta.env?.VITE_DEMO_ENABLED === "true";
-
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -149,17 +145,6 @@ async function authRequest<T>(
 }
 
 export const api = {
-  createDemoSession(): Promise<AuthResponse> {
-    return request<AuthResponse>("/api/demo/session", { method: "POST" });
-  },
-
-  endDemoSession(): Promise<{ status: string; detail: string }> {
-    return request<{ status: string; detail: string }>(
-      "/api/demo/session/end",
-      { method: "POST" },
-    );
-  },
-
   login(email: string, password: string): Promise<AuthResponse> {
     const body = new URLSearchParams({ username: email, password });
     return authRequest<AuthResponse>(

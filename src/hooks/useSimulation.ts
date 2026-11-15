@@ -7,7 +7,7 @@ import {
   TriggerAnomalyPayload,
 } from "../types/simulation.js";
 
-export function useSimulation(onReset?: () => void, isDemo = false) {
+export function useSimulation(onReset?: () => void) {
   const [status, setStatus] = useState<SimulationStatus | null>(null);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -28,18 +28,6 @@ export function useSimulation(onReset?: () => void, isDemo = false) {
   };
 
   const refreshStatus = useCallback(async () => {
-    if (isDemo) {
-      try {
-        setStatus(await api.getSimulationStatus());
-      } catch {
-        setStatus(null);
-      }
-      // The global health endpoint describes the shared process, not this
-      // visitor's isolated in-memory telemetry runtime.
-      setHealth(null);
-      return;
-    }
-
     try {
       const [simRes, healthRes] = await Promise.allSettled([
         api.getSimulationStatus(),
@@ -53,7 +41,7 @@ export function useSimulation(onReset?: () => void, isDemo = false) {
         setHealth(healthRes.value);
       }
     } catch {}
-  }, [isDemo]);
+  }, []);
 
   const togglePlayPause = async () => {
     if (!status) return;

@@ -50,17 +50,12 @@ export const Dashboard: React.FC<{
   }, []);
 
   useEffect(() => {
-    if (user.is_demo) {
-      setHosts([]);
-      setSelectedHostId(null);
-      return;
-    }
     void loadHosts();
     const timer = setInterval(() => void loadHosts(), 5000);
     return () => clearInterval(timer);
-  }, [loadHosts, user.is_demo]);
+  }, [loadHosts]);
 
-  const telemetry = useTelemetry(selectedHostId, Boolean(user.is_demo));
+  const telemetry = useTelemetry(selectedHostId);
   const alerts = useAlerts(selectedHostId);
   const { handleIncomingTelemetry, fetchStats, fetchHistory, clearStream } =
     telemetry;
@@ -76,9 +71,9 @@ export const Dashboard: React.FC<{
     }, 400);
   }, [clearStream, clearAlerts, fetchStats, fetchHistory, refreshAlerts]);
 
-  const simulation = useSimulation(handleReset, Boolean(user.is_demo));
+  const simulation = useSimulation(handleReset);
   const canControlSimulation =
-    Boolean(user.is_demo) || user.role === "admin" || user.role === "operator";
+    user.role === "admin" || user.role === "operator";
   const simulationEnabled =
     simulation.status?.simulation_enabled ??
     simulation.health?.simulation_enabled ??
@@ -166,7 +161,6 @@ export const Dashboard: React.FC<{
       <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
         <LiveTelemetrySource
           hosts={hosts}
-          isDemo={Boolean(user.is_demo)}
           host={
             selectedHostId
               ? (hosts.find((host) => host.id === selectedHostId) ?? null)

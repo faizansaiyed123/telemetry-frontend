@@ -12,7 +12,6 @@ interface LiveTelemetrySourceProps {
   lastReceivedAt: number | null;
   onHostChange: (hostId: string) => void;
   hosts: Host[];
-  isDemo?: boolean;
 }
 
 function sourceLabel(event: TelemetryEvent | null): {
@@ -50,21 +49,14 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
   lastReceivedAt,
   onHostChange,
   hosts,
-  isDemo = false,
 }) => {
-  const freshness = isDemo
-    ? {
-        status: current ? ("online" as const) : ("silent" as const),
-        label: current ? "Backend synthetic stream active" : "Waiting for backend samples",
+  const freshness = host
+    ? getTelemetryFreshness(host.last_seen_at, host.is_active)
+    : {
+        status: "silent" as const,
+        label: "No host selected",
         ageSeconds: null,
-      }
-    : host
-      ? getTelemetryFreshness(host.last_seen_at, host.is_active)
-      : {
-          status: "silent" as const,
-          label: "No host selected",
-          ageSeconds: null,
-        };
+      };
   const source = sourceLabel(current);
 
   const socketTone =
@@ -94,7 +86,7 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <h2 className="truncate text-base font-semibold text-white">
-                {host?.name ?? (isDemo ? "Isolated demo workspace" : "Waiting for a monitored host")}
+                {host?.name ?? "Waiting for a monitored host"}
               </h2>
               {host && (
                 <span className="rounded-full border border-white/8 px-2 py-0.5 text-[10px] font-medium text-slate-400">
@@ -135,29 +127,25 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          {!isDemo && (
-            <>
-              <label className="sr-only" htmlFor="telemetry-host-select">
-                Telemetry host
-              </label>
-              <select
-                id="telemetry-host-select"
-                value={host?.id ?? ""}
-                onChange={(event) => onHostChange(event.target.value)}
-                className="min-w-0 rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/30"
-              >
-                <option value="" disabled>
-                  Select host
-                </option>
-                {hosts.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} · {item.environment}
-                    {item.agent_version ? " · agent" : ""}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
+          <label className="sr-only" htmlFor="telemetry-host-select">
+            Telemetry host
+          </label>
+          <select
+            id="telemetry-host-select"
+            value={host?.id ?? ""}
+            onChange={(event) => onHostChange(event.target.value)}
+            className="min-w-0 rounded-xl border border-white/8 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/30"
+          >
+            <option value="" disabled>
+              Select host
+            </option>
+            {hosts.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.environment}
+                {item.agent_version ? " · agent" : ""}
+              </option>
+            ))}
+          </select>
           <div
             className={`inline-flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2.5 text-xs ${socketTone}`}
           >
@@ -171,17 +159,12 @@ export const LiveTelemetrySource: React.FC<LiveTelemetrySourceProps> = ({
         </div>
       </div>
 
-      {isDemo ? (
-        <div className="mt-4 rounded-xl border border-cyan-500/15 bg-cyan-500/[0.04] px-4 py-3 text-xs leading-5 text-cyan-100">
-          This is a real backend-generated synthetic stream isolated to this temporary
-          session. No host agent or shared host inventory is connected.
-        </div>
-      ) : !host ? (
+      {!host && (
         <div className="mt-4 rounded-xl border border-amber-500/15 bg-amber-500/[0.04] px-4 py-3 text-xs text-amber-200">
           No monitored host is selected. The dashboard will not label unscoped
           simulator data as live telemetry.
         </div>
-      ) : null}
+      )}
 
       {host?.agent_version && current?.source === "agent" && (
         <div className="mt-4 rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3 text-xs leading-5 text-slate-500">
