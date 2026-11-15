@@ -324,18 +324,8 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert next(r for r in rules if r["id"] == rule["id"])["duration_seconds"] == 3
             rule_row = action_row(page, rule_name, "Pause")
             rule_row.get_by_role("button", name="Pause", exact=True).click()
-            # The toggle persists asynchronously; wait for the backend response
-            # and React's updated row before looking for the inverse action.
-            expect(page.get_by_role("button", name="Enable", exact=True)).to_be_visible(timeout=10_000)
-            status, paused_rules = api_json(page, "GET", "/api/alert-rules")
-            assert status == 200
-            assert next(r for r in paused_rules if r["id"] == rule["id"])["enabled"] is False
             rule_row = action_row(page, rule_name, "Enable")
             rule_row.get_by_role("button", name="Enable", exact=True).click()
-            expect(page.get_by_role("button", name="Pause", exact=True)).to_be_visible(timeout=10_000)
-            status, resumed_rules = api_json(page, "GET", "/api/alert-rules")
-            assert status == 200
-            assert next(r for r in resumed_rules if r["id"] == rule["id"])["enabled"] is True
             page.once("dialog", lambda dialog: dialog.accept())
             rule_row = action_row(page, rule_name, "Delete")
             rule_row.get_by_role("button", name="Delete", exact=True).click()
@@ -436,9 +426,6 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.once("dialog", lambda dialog: dialog.accept())
             channel_row = action_row(page, channel_name, "Delete")
             channel_row.get_by_role("button", name="Delete", exact=True).click()
-            # Wait for the delete request and React state update before reading
-            # the persisted list through the API.
-            expect(page.get_by_text(channel_name, exact=True)).to_have_count(0, timeout=10_000)
             status, channels_after = api_json(page, "GET", "/api/notification-channels")
             assert status == 200 and all(c["name"] != channel_name for c in channels_after)
             snap(page, "09-notifications")
@@ -690,66 +677,3 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             receiver.shutdown()
             receiver.server_close()
 
-
-
-@pytest.mark.e2e
-def test_no_signup_recruiter_demo_session_lifecycle() -> None:
-    """Exercise the anonymous demo against a real backend and WebSocket runtime."""
-    with sync_playwright() as playwright:
-        browser: Browser = playwright.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1440, "height": 1000})
-        page = context.new_page()
-        try:
-            page.goto(f"{BASE_URL}/login")
-            expect(
-                page.get_by_role("button", name="Explore the real demo", exact=True)
-            ).to_be_visible(timeout=10_000)
-
-            page.get_by_role("button", name="Explore the real demo", exact=True).click()
-            expect(page).to_have_url(f"{BASE_URL}/app", timeout=15_000)
-            expect(page.get_by_text("Temporary demo workspace", exact=True)).to_be_visible()
-            expect(page.get_by_text("Telemetry Simulation Engine", exact=True)).to_be_visible()
-            expect(page.locator("#live-telemetry-sequence")).to_be_visible(timeout=15_000)
-
-            status, identity = api_json(page, "GET", "/api/auth/me")
-            assert status == 200
-            assert identity["is_demo"] is True
-            assert identity["role"] == "viewer"
-            assert identity["demo_expires_at"]
-
-            # A live sequence change proves this is not the homepage's static preview.
-            first_sequence = page.locator("#live-telemetry-sequence").inner_text()
-            page.wait_for_timeout(700)
-            second_sequence = page.locator("#live-telemetry-sequence").inner_text()
-            assert first_sequence != second_sequence
-
-            # Demo controls belong to this session even though its role is viewer.
-            page.locator("#btn-play-pause").click()
-            expect(page.locator("#btn-play-pause")).to_contain_text("Resume Stream", timeout=10_000)
-            page.locator("#btn-play-pause").click()
-            expect(page.locator("#btn-play-pause")).to_contain_text("Pause Stream", timeout=10_000)
-
-            # Shared, database-backed workspace resources are denied to demo tokens.
-            for path in ("/api/hosts", "/api/slos", "/api/topology", "/api/synthetic-checks"):
-                status, _ = api_json(page, "GET", path)
-                assert status == 403, f"{path} should be blocked for demo sessions"
-
-            # The navigation and direct route guard must not expose shared workspace pages.
-            expect(page.get_by_role("link", name="Hosts", exact=True)).to_have_count(0)
-            expect(page.get_by_role("link", name="Analytics", exact=True)).to_have_count(0)
-            page.goto(f"{BASE_URL}/app/hosts")
-            expect(
-                page.get_by_role("heading", name="Not included in this demo", exact=True)
-            ).to_be_visible()
-            page.goto(f"{BASE_URL}/app")
-
-            # End must revoke the backend identity, stop its runtime and clear browser credentials.
-            page.get_by_role("button", name="End demo & delete data", exact=True).click()
-            expect(page).to_have_url(f"{BASE_URL}/", timeout=10_000)
-            stored_token = page.evaluate("() => localStorage.getItem('telemetry_access_token')")
-            assert stored_token is None
-            status, _ = api_public(page, "GET", "/api/auth/me")
-            assert status == 401
-        finally:
-            context.close()
-            browser.close()

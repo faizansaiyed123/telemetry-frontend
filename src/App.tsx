@@ -50,21 +50,7 @@ function ProtectedApp() {
   }
 
   let content: React.ReactNode;
-  const demoAllowedRoutes = ["/app", "/app/alerts", "/app/incidents"];
-  if (user.is_demo && !demoAllowedRoutes.includes(path)) {
-    content = (
-      <div className="mx-auto max-w-3xl p-8 text-center">
-        <h1 className="text-2xl font-semibold text-white">Not included in this demo</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-500">
-          This area depends on shared host or persisted workspace records. The temporary
-          demo exposes only its own synthetic telemetry, alerts and incidents.
-        </p>
-        <a href="/app" className="mt-6 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-semibold text-slate-950">
-          Back to demo overview
-        </a>
-      </div>
-    );
-  } else if (path === "/app") content = <Dashboard user={user} />;
+  if (path === "/app") content = <Dashboard user={user} />;
   else if (path === "/app/alerts") content = <AlertsPage user={user} />;
   else if (path === "/app/analytics") content = <Analytics />;
   else if (path === "/app/incidents") content = <Incidents user={user} />;
