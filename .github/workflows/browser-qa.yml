@@ -47,6 +47,10 @@ jobs:
       QA_BASE_URL: http://127.0.0.1:3000
       QA_API_URL: http://127.0.0.1:8000
       VITE_API_BASE_URL: http://127.0.0.1:8000
+      VITE_DEMO_ENABLED: "true"
+      DEMO_ENABLED: "true"
+      DEMO_MAX_ACTIVE_SESSIONS_PER_IP: "2"
+      DEMO_BOOTSTRAP_REQUESTS_PER_IP: "4"
       QA_ADMIN_EMAIL: qa-admin@example.com
       QA_ADMIN_PASSWORD: QaAdmin!12345
       QA_ARTIFACT_DIR: qa-artifacts
