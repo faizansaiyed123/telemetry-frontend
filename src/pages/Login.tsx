@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { ArrowRight, LockKeyhole, Radio, ShieldCheck } from "lucide-react";
-import { api } from "../services/api.js";
+import { api, DEMO_ENABLED } from "../services/api.js";
 import { saveSession } from "../lib/session.js";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function submit(event: React.FormEvent) {
@@ -21,6 +22,25 @@ export const Login: React.FC = () => {
       setError(err instanceof Error ? err.message : "Unable to sign in");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function exploreDemo() {
+    if (demoLoading || loading) return;
+    setError(null);
+    setDemoLoading(true);
+    try {
+      const session = await api.createDemoSession();
+      saveSession(session);
+      window.location.replace("/app");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "The temporary demo workspace is unavailable.",
+      );
+    } finally {
+      setDemoLoading(false);
     }
   }
 
@@ -129,7 +149,7 @@ export const Login: React.FC = () => {
                 </div>
               )}
               <button
-                disabled={loading}
+                disabled={loading || demoLoading}
                 className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
               >
                 {loading ? "Signing in…" : "Sign in"}
@@ -138,6 +158,27 @@ export const Login: React.FC = () => {
                 )}
               </button>
             </form>
+
+            {DEMO_ENABLED && (
+              <div className="mt-6 rounded-2xl border border-cyan-500/15 bg-cyan-500/[0.04] p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">
+                  Explore without an account
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  Creates a temporary, isolated backend workspace with synthetic telemetry.
+                  It expires automatically and can be ended at any time.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void exploreDemo()}
+                  disabled={loading || demoLoading}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-5 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/15 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {demoLoading ? "Creating isolated workspace…" : "Explore the real demo"}
+                  {!demoLoading && <ArrowRight className="h-4 w-4" />}
+                </button>
+              </div>
+            )}
 
             <div className="mt-7 flex flex-wrap items-center gap-4 text-sm text-slate-500">
               <a href="/signup" className="text-cyan-300 hover:text-cyan-200">

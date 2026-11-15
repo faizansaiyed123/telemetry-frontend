@@ -1,4 +1,5 @@
 import React from "react";
+import { DEMO_ENABLED } from "../services/api.js";
 import {
   Activity,
   ArrowRight,
@@ -142,6 +143,15 @@ export const Home: React.FC = () => {
               >
                 Sign in
               </a>
+              {DEMO_ENABLED && (
+                <a
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-5 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/15"
+                >
+                  Explore the real backend demo
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              )}
             </div>
             <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs text-slate-500">
               {[
@@ -171,13 +181,13 @@ export const Home: React.FC = () => {
                       Operations overview
                     </div>
                     <div className="text-[10px] text-slate-500">
-                      LIVE · 10 events/sec
+                      ILLUSTRATIVE PREVIEW · SAMPLE VALUES
                     </div>
                   </div>
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-medium text-emerald-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                  Healthy
+                  Sample state
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">

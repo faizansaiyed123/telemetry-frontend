@@ -52,7 +52,7 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
     import("../types/app.js").IncidentEvidence | null
   >(null);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
-  const canAcknowledge = user.role === "admin" || user.role === "operator";
+  const canAcknowledge = Boolean(user.is_demo) || user.role === "admin" || user.role === "operator";
 
   async function load() {
     try {
@@ -89,8 +89,9 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
 
   useEffect(() => {
     let mounted = true;
-    if (!selectedId) {
+    if (!selectedId || user.is_demo) {
       setEvidence(null);
+      setEvidenceLoading(false);
       return;
     }
     setEvidenceLoading(true);
@@ -113,7 +114,7 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
     return () => {
       mounted = false;
     };
-  }, [selectedId]);
+  }, [selectedId, user.is_demo]);
 
   async function acknowledge(id: string) {
     setWorking(id);
@@ -555,7 +556,9 @@ export const Incidents: React.FC<{ user: AuthUser }> = ({ user }) => {
                     signal: {new Date(selected.last_seen_at).toLocaleString()}.
                     {evidenceLoading
                       ? " Loading correlated events…"
-                      : " No evidence details available yet."}
+                      : user.is_demo
+                        ? " Cross-system evidence is not exposed in this isolated demo. The incidents and acknowledgements above belong only to your session."
+                        : " No evidence details available yet."}
                   </p>
                 )}
               </div>
