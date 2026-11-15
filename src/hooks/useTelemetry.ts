@@ -4,7 +4,7 @@ import { TelemetryEvent, TelemetryStats } from "../types/telemetry.js";
 
 const MAX_CHART_BUFFER = 120;
 
-export function useTelemetry(hostId?: string | null) {
+export function useTelemetry(hostId?: string | null, isDemo = false) {
   const [current, setCurrent] = useState<TelemetryEvent | null>(null);
   const [previous, setPrevious] = useState<TelemetryEvent | null>(null);
   const [streamBuffer, setStreamBuffer] = useState<TelemetryEvent[]>([]);
@@ -41,8 +41,8 @@ export function useTelemetry(hostId?: string | null) {
 
   const handleIncomingTelemetry = useCallback(
     (event: TelemetryEvent) => {
-      if (hostId && event.host_id !== hostId) return;
-      if (!hostId && event.host_id) return;
+      if (!isDemo && hostId && event.host_id !== hostId) return;
+      if (!isDemo && !hostId && event.host_id) return;
 
       if (
         lastSeqRef.current !== null &&
@@ -66,11 +66,11 @@ export function useTelemetry(hostId?: string | null) {
         }, 25);
       }
     },
-    [flushPending, hostId],
+    [flushPending, hostId, isDemo],
   );
 
   const fetchStats = useCallback(async () => {
-    if (!hostId) {
+    if (!hostId && !isDemo) {
       setStats(null);
       return;
     }
@@ -83,11 +83,11 @@ export function useTelemetry(hostId?: string | null) {
     } finally {
       setStatsLoading(false);
     }
-  }, [hostId]);
+  }, [hostId, isDemo]);
 
   const fetchHistory = useCallback(
     async (limit = 100) => {
-      if (!hostId) {
+      if (!hostId && !isDemo) {
         setHistoryEvents([]);
         return [];
       }
@@ -104,7 +104,7 @@ export function useTelemetry(hostId?: string | null) {
         setHistoryLoading(false);
       }
     },
-    [hostId],
+    [hostId, isDemo],
   );
 
   const clearStream = useCallback(() => {
@@ -128,7 +128,7 @@ export function useTelemetry(hostId?: string | null) {
     let mounted = true;
     clearStream();
 
-    if (!hostId)
+    if (!hostId && !isDemo)
       return () => {
         mounted = false;
       };
@@ -164,7 +164,7 @@ export function useTelemetry(hostId?: string | null) {
     return () => {
       mounted = false;
     };
-  }, [clearStream, hostId]);
+  }, [clearStream, hostId, isDemo]);
 
   useEffect(() => {
     const statsTimer = setInterval(() => void fetchStats(), 5000);
