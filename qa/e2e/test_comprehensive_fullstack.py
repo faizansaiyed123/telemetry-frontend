@@ -324,8 +324,18 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             assert next(r for r in rules if r["id"] == rule["id"])["duration_seconds"] == 3
             rule_row = action_row(page, rule_name, "Pause")
             rule_row.get_by_role("button", name="Pause", exact=True).click()
+            # The toggle persists asynchronously; wait for the backend response
+            # and React's updated row before looking for the inverse action.
+            expect(page.get_by_role("button", name="Enable", exact=True)).to_be_visible(timeout=10_000)
+            status, paused_rules = api_json(page, "GET", "/api/alert-rules")
+            assert status == 200
+            assert next(r for r in paused_rules if r["id"] == rule["id"])["enabled"] is False
             rule_row = action_row(page, rule_name, "Enable")
             rule_row.get_by_role("button", name="Enable", exact=True).click()
+            expect(page.get_by_role("button", name="Pause", exact=True)).to_be_visible(timeout=10_000)
+            status, resumed_rules = api_json(page, "GET", "/api/alert-rules")
+            assert status == 200
+            assert next(r for r in resumed_rules if r["id"] == rule["id"])["enabled"] is True
             page.once("dialog", lambda dialog: dialog.accept())
             rule_row = action_row(page, rule_name, "Delete")
             rule_row.get_by_role("button", name="Delete", exact=True).click()
