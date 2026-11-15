@@ -436,6 +436,9 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             page.once("dialog", lambda dialog: dialog.accept())
             channel_row = action_row(page, channel_name, "Delete")
             channel_row.get_by_role("button", name="Delete", exact=True).click()
+            # Wait for the delete request and React state update before reading
+            # the persisted list through the API.
+            expect(page.get_by_text(channel_name, exact=True)).to_have_count(0, timeout=10_000)
             status, channels_after = api_json(page, "GET", "/api/notification-channels")
             assert status == 200 and all(c["name"] != channel_name for c in channels_after)
             snap(page, "09-notifications")
