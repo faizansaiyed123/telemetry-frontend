@@ -690,3 +690,66 @@ def test_comprehensive_real_full_stack_walkthrough() -> None:
             receiver.shutdown()
             receiver.server_close()
 
+
+
+@pytest.mark.e2e
+def test_no_signup_recruiter_demo_session_lifecycle() -> None:
+    """Exercise the anonymous demo against a real backend and WebSocket runtime."""
+    with sync_playwright() as playwright:
+        browser: Browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(viewport={"width": 1440, "height": 1000})
+        page = context.new_page()
+        try:
+            page.goto(f"{BASE_URL}/login")
+            expect(
+                page.get_by_role("button", name="Explore the real demo", exact=True)
+            ).to_be_visible(timeout=10_000)
+
+            page.get_by_role("button", name="Explore the real demo", exact=True).click()
+            expect(page).to_have_url(f"{BASE_URL}/app", timeout=15_000)
+            expect(page.get_by_text("Temporary demo workspace", exact=True)).to_be_visible()
+            expect(page.get_by_text("Telemetry Simulation Engine", exact=True)).to_be_visible()
+            expect(page.locator("#live-telemetry-sequence")).to_be_visible(timeout=15_000)
+
+            status, identity = api_json(page, "GET", "/api/auth/me")
+            assert status == 200
+            assert identity["is_demo"] is True
+            assert identity["role"] == "viewer"
+            assert identity["demo_expires_at"]
+
+            # A live sequence change proves this is not the homepage's static preview.
+            first_sequence = page.locator("#live-telemetry-sequence").inner_text()
+            page.wait_for_timeout(700)
+            second_sequence = page.locator("#live-telemetry-sequence").inner_text()
+            assert first_sequence != second_sequence
+
+            # Demo controls belong to this session even though its role is viewer.
+            page.locator("#btn-play-pause").click()
+            expect(page.locator("#btn-play-pause")).to_contain_text("Resume Stream", timeout=10_000)
+            page.locator("#btn-play-pause").click()
+            expect(page.locator("#btn-play-pause")).to_contain_text("Pause Stream", timeout=10_000)
+
+            # Shared, database-backed workspace resources are denied to demo tokens.
+            for path in ("/api/hosts", "/api/slos", "/api/topology", "/api/synthetic-checks"):
+                status, _ = api_json(page, "GET", path)
+                assert status == 403, f"{path} should be blocked for demo sessions"
+
+            # The navigation and direct route guard must not expose shared workspace pages.
+            expect(page.get_by_role("link", name="Hosts", exact=True)).to_have_count(0)
+            expect(page.get_by_role("link", name="Analytics", exact=True)).to_have_count(0)
+            page.goto(f"{BASE_URL}/app/hosts")
+            expect(
+                page.get_by_role("heading", name="Not included in this demo", exact=True)
+            ).to_be_visible()
+            page.goto(f"{BASE_URL}/app")
+
+            # End must revoke the backend identity, stop its runtime and clear browser credentials.
+            page.get_by_role("button", name="End demo & delete data", exact=True).click()
+            expect(page).to_have_url(f"{BASE_URL}/", timeout=10_000)
+            stored_token = page.evaluate("() => localStorage.getItem('telemetry_access_token')")
+            assert stored_token is None
+            status, _ = api_public(page, "GET", "/api/auth/me")
+            assert status == 401
+        finally:
+            context.close()
+            browser.close()
