@@ -29,7 +29,7 @@ export const AlertsPage: React.FC<{ user: AuthUser }> = ({ user }) => {
   useEffect(() => {
     void load();
   }, [activeOnly]);
-  const canAcknowledge = user.role === "admin" || user.role === "operator";
+  const canAcknowledge = Boolean(user.is_demo) || user.role === "admin" || user.role === "operator";
   const active = useMemo(
     () => alerts.filter((a) => !a.resolved).length,
     [alerts],
