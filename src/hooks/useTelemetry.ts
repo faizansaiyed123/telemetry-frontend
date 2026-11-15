@@ -93,7 +93,7 @@ export function useTelemetry(hostId?: string | null, isDemo = false) {
       }
       try {
         setHistoryLoading(true);
-        const data = await api.getTelemetryHistory(limit, hostId);
+        const data = await api.getTelemetryHistory(limit, hostId ?? undefined);
         setHistoryEvents(data.events);
         return data.events;
       } catch (err) {
